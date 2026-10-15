@@ -1,31 +1,23 @@
-# Relatório de verificação — versão 0.1.0
+# Relatório de testes — v0.1.0
 
-Data: 15/10/2026
+Data: 15/10/2026.
 
-## Concluído
+## Resultado validado
+- 21 testes automatizados: **21 aprovados, 0 falhas** (Node 22, GitHub Actions).
+- Compilação `assembleDebug`: **aprovada** (Gradle 8.9, JDK 17, Android SDK 35).
+- APK Android gerado, validado como arquivo assinado de depuração; inclui os módulos locais.
+- Emulador Android 35: **instalação e inicialização aprovadas**.
+- Screenshot da tela inicial verificado: jogo na horizontal com menu e controles visíveis.
+- Sem `FATAL EXCEPTION` e sem `ANR in br.com.aventuranagalaxia` no logcat da execução aprovada.
+- Execução de referência: https://github.com/atshimura/Aventura-na-galaxia/actions/runs/38825459905.
 
-- Código da primeira fase e das regras do jogo implementados.
-- 15 testes automatizados em Node.js: **15 aprovados; 0 falhas**.
-- `node --check` em `core.mjs` e `main.mjs`: **aprovado**.
-- Navegador Chromium headless (960×540), com CSS e JavaScript incorporados no documento de teste: **aprovado**.
-  - Menu e início da fase.
-  - Foguete acompanha arrasto do mouse (simulação do toque).
-  - HUD visível, pausar e continuar.
-  - Coleta de moeda e aumento de pontuação.
-  - Transição para a tela de estação espacial.
-  - **Sem erros JavaScript** reportados pelo navegador.
-- Screenshots da tela inicial e da partida salvos separadamente.
+## Correções realizadas
+1. Remoção da dependência de pacote Android SDK `tools` obsoleto no pipeline.
+2. Troca do motivo HTTP da resposta WebView `Não encontrado` por `Not Found`, exigência de caracteres ASCII.
+3. Remoção do modo imersivo que acionava um aviso intrusivo e falhas de resposta no emulador, mantendo o jogo horizontal.
+4. Correção dos comandos de shell no job de emulador e verificação de erros `ANR`/`FATAL EXCEPTION`.
 
-## Não concluído / bloqueios do ambiente
-
-- **Compilação APK:** não executada. Não há SDK Android/Gradle disponível neste ambiente e não foi possível acessar recursos externos para instalação. Há workflow preparado para compilar no GitHub Actions e testar a abertura em emulador, ainda não executado.
-- **Emulação Android:** não executada. ADB e emulador Android não estão instalados neste ambiente; o workflow remoto foi configurado, porém não executado.
-- **Teste em aparelho Android real:** pendente de instalação do APK.
-- **Publicação no GitHub:** bloqueada pela ausência de repositório dedicado. A integração atual autoriza edição dos repositórios existentes, mas não a criação de um novo. Não alterar repositórios alheios ao jogo.
-
-## Próximas ações
-
-1. Criar o repositório `aventura-na-galaxia` na conta GitHub vinculada.
-2. Enviar estes arquivos ao repositório com a integração GitHub, preservando `web/`, `android/`, `tests/` e `.github/workflows/`.
-3. Verificar execução **Testes e APK Android** em Actions; corrigir eventuais erros.
-4. Baixar APK `app-debug.apk` do artefato e instalar em aparelho ou emulador para validar orientação, áudio, WebView e persistência local.
+## Limitações e próximos testes
+- Primeira versão contém apenas **uma fase**. Os demais recursos estão planejados.
+- A verificação de emulador cobriu **instalação, abertura e tela inicial**; não equivale a um teste de ponta a ponta de toda a jogabilidade.
+- Teste de uso prolongado, entrada por toque, áudio e persistência em aparelho Android real ainda é recomendado.

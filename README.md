@@ -41,3 +41,10 @@ Também é possível abrir a pasta `android` no Android Studio com SDK 35/JDK 17
 - Testes em emulador Android e testes em celulares reais.
 
 Veja [`docs/PLANO.md`](docs/PLANO.md) para os requisitos completos.
+## Situação da validação
+
+- **21 testes automatizados aprovados** (regras e estrutura).
+- **APK de depuração compilado** e publicado como artefato pelo GitHub Actions.
+- **Teste de inicialização Android 35 aprovado no emulador**, com captura de tela, sem FATAL EXCEPTION ou ANR no processo do jogo.
+- Execução aprovada: [GitHub Actions #38825459905](https://github.com/atshimura/Aventura-na-galaxia/actions/runs/38825459905).
+- Validação manual da jogabilidade em aparelho real ainda recomendada.
