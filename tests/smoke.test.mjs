@@ -27,3 +27,9 @@ test('todos os módulos necessários existem e usam importação local',()=>{
   assert.match(m,/from '\.\/core.mjs'/);
   assert.match(m,/requestAnimationFrame\(loop\)/);
 });
+
+test('respostas HTTP do WebView usam reason phrases em ASCII',()=>{
+  const java=readFileSync(new URL('../android/app/src/main/java/br/com/aventuranagalaxia/MainActivity.java',import.meta.url),'utf8');
+  assert.match(java,/"Not Found"/);
+  assert.doesNotMatch(java,/"Não encontrado"/);
+});

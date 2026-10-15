@@ -56,7 +56,7 @@ public final class MainActivity extends Activity {
                     InputStream data = getAssets().open(name, AssetManager.ACCESS_STREAMING);
                     return new WebResourceResponse(mime, "UTF-8", data);
                 } catch (IOException ex) {
-                    return new WebResourceResponse("text/plain", "UTF-8", 404, "Não encontrado", null,
+                    return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", null,
                             new java.io.ByteArrayInputStream(new byte[0]));
                 }
             }
