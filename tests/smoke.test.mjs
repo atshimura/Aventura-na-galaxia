@@ -1,26 +1,29 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import vm from 'node:vm';
 const page=readFileSync(new URL('../web/index.html',import.meta.url),'utf8');
-const js=page.match(/<script>([\s\S]*?)<\/script>/)?.[1];
-test('pacote inclui HTML offline e script independente',()=>{
+test('HTML inclui módulos offline e CSS local',()=>{
   assert.match(page,/lang="pt-BR"/);
-  assert.ok(js&&js.length>1000,'script deve estar embutido para uso offline');
-  assert.doesNotMatch(page,/<script[^>]*src=/);
+  assert.match(page,/src="main.mjs"/);
+  assert.match(page,/href="style.css"/);
+  assert.doesNotMatch(page,/https?:\/\//);
 });
-test('JavaScript do jogo sem erro sintático',()=>assert.doesNotThrow(()=>new vm.Script(js)));
-test('tela com tres vidas, moedas e dificuldades',()=>{
+test('HUD inclui corações, moedas e os três níveis',()=>{
   for(const id of ['hearts','wallet','difficulty','score','pause','start','result'])assert.ok(page.includes('id="'+id+'"'),id);
   for(const d of ['facil','normal','dificil'])assert.ok(page.includes('value="'+d+'"'),d);
 });
-test('tela horizontal e jogo sem rede',()=>{
+test('modo horizontal sem permissão de internet',()=>{
   const manifest=readFileSync(new URL('../android/app/src/main/AndroidManifest.xml',import.meta.url),'utf8');
   assert.match(manifest,/screenOrientation="landscape"/);
   assert.doesNotMatch(manifest,/android.permission.INTERNET/);
 });
-test('codigo nativo usa assets locais e armazenamento offline',()=>{
+test('origem segura de assets e armazenamento persistente',()=>{
   const native=readFileSync(new URL('../android/app/src/main/java/br/com/aventuranagalaxia/MainActivity.java',import.meta.url),'utf8');
   assert.match(native,/getAssets\(\)\.open\(name/);
   assert.match(native,/setDomStorageEnabled\(true\)/);
+});
+test('todos os módulos necessários existem e usam importação local',()=>{
+  const m=readFileSync(new URL('../web/main.mjs',import.meta.url),'utf8');
+  assert.match(m,/from '\.\/core.mjs'/);
+  assert.match(m,/requestAnimationFrame\(loop\)/);
 });

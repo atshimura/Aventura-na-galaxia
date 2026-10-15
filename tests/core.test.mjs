@@ -1,0 +1,20 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {GameState,normalizePointer,intersects,sanitizeSave,freshSave,REPAIR_COST,STAGE_SECONDS} from '../web/core.mjs';
+const g=()=>new GameState({difficulty:'facil',rng:()=>0.5});
+function step(game,seconds){for(let i=0;i<Math.ceil(seconds/.05);i++)game.update(Math.min(.05,seconds-i*.05));}
+test('começa com 3 vidas e fase 1 em andamento',()=>{const x=g();x.start();assert.equal(x.hearts,3);assert.equal(x.state,'playing');assert.equal(x.score,0);});
+test('dificuldades válidas e inválidas',()=>{for(const d of ['facil','normal','dificil'])assert.equal(new GameState({difficulty:d}).difficulty,d);assert.throws(()=>new GameState({difficulty:'outra'}));});
+test('coordenadas de toque proporcionais à tela',()=>{assert.deepEqual(normalizePointer(50,25,{left:0,top:0,width:100,height:50}),{x:480,y:270});});
+test('foguete fica na área acessível',()=>{const x=g();x.setTarget(-100,2000);assert.deepEqual(x.target,{x:64,y:480});});
+test('moeda concede ponto e moeda para a carteira persistente',()=>{const x=g();x.start();x.objects=[{kind:'coin',x:x.rocket.x,y:x.rocket.y,r:16}];x.update(.01);assert.equal(x.score,1);assert.equal(x.save.wallet,1);assert.equal(x.save.best,1);assert.equal(x.objects.length,0);});
+test('colisão após invencibilidade consome uma vida',()=>{const x=g();x.start();x.invincible=0;x.objects=[{kind:'asteroid',x:x.rocket.x,y:x.rocket.y,r:25}];x.update(.01);assert.equal(x.hearts,2);assert.ok(x.invincible>0);});
+test('intervalo de imunidade impede perda de várias vidas',()=>{const x=g();x.start();x.invincible=0;x.objects=[{kind:'asteroid',x:153,y:270,r:30},{kind:'asteroid',x:154,y:270,r:30}];x.update(.01);assert.equal(x.hearts,2);});
+test('3 colisões separadas encerram a tentativa',()=>{const x=g();x.start();for(let i=0;i<3;i++){x.invincible=0;x.objects=[{kind:'asteroid',x:153,y:270,r:30}];x.update(.01);}assert.equal(x.hearts,0);assert.equal(x.state,'gameover');});
+test('escudo bloqueia dano uma vez',()=>{const x=g();x.start();x.invincible=0;x.shield=1;x.objects=[{kind:'asteroid',x:153,y:270,r:30}];x.update(.01);assert.equal(x.hearts,3);assert.equal(x.shield,0);});
+test('caixas concedem poderes sem ultrapassar 3 corações',()=>{const x=g();x.start();x.hearts=3;x.useCrate();assert.equal(x.hearts,3);x.rng=()=>.9;x.useCrate();assert.ok(x.invincible>=5);});
+test('vitória após duração e preservação do progresso',()=>{const x=g();x.start();x.objects=[];x.spawnObstacle=()=>{};x.spawnCoin=()=>{};x.spawnCrate=()=>{};step(x,STAGE_SECONDS+.1);assert.equal(x.state,'victory');assert.equal(x.save.completed,1);});
+test('conserto custa 25 moedas e só é possível na estação',()=>{const x=g();x.save.wallet=50;assert.equal(x.repair(),false);x.start();x.hearts=1;x.state='victory';assert.equal(x.repair(),true);assert.equal(x.hearts,2);assert.equal(x.save.wallet,25);assert.equal(x.repair(),true);assert.equal(x.save.wallet,0);assert.equal(x.repair(),false);});
+test('salvamento malformado é saneado',()=>{assert.equal(sanitizeSave({wallet:-300,best:Infinity,completed:99,sound:false}).wallet,0);assert.equal(sanitizeSave({completed:99}).completed,20);assert.equal(sanitizeSave(null).wallet,freshSave().wallet);});
+test('pausa congela o tempo',()=>{const x=g();x.start();x.pause();x.update(2);assert.equal(x.elapsed,0);x.resume();x.update(.04);assert.ok(x.elapsed>0);});
+test('verificação geométrica de colisões',()=>{assert.equal(intersects({x:0,y:0,r:10},{x:20,y:0,r:10}),false);assert.equal(intersects({x:0,y:0,r:10},{x:19,y:0,r:10}),true);});
