@@ -69,13 +69,13 @@ jobs:
           script: |
             adb install -r apk/app-debug.apk
             adb shell am start -W -n br.com.aventuranagalaxia/.MainActivity
-            sleep 3
-            adb shell input tap 1300 405
-            sleep 5
+            sleep 8
             adb logcat -d -v threadtime > galaxia-logcat.txt
             adb shell screencap -p /sdcard/galaxia.png
             adb pull /sdcard/galaxia.png galaxia-emulador.png
             adb shell pidof br.com.aventuranagalaxia
+            sh -c "! grep -q 'ANR in br.com.aventuranagalaxia' galaxia-logcat.txt"
+            sh -c "! grep -A 6 'FATAL EXCEPTION' galaxia-logcat.txt | grep -q 'Process: br.com.aventuranagalaxia'"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
