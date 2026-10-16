@@ -62,7 +62,6 @@ export function drawSpaceEnvironment(c,game,time){
    c.strokeStyle=feature+'6b';c.lineWidth=7;c.beginPath();c.ellipse(x,285,55,125,-.2,0,PI*2);c.stroke();
    if(kind==='city'){c.fillStyle=p.sky+'99';c.fillRect(x-15,300,30,230);}}
  }
- }
  if(['storm','lava'].includes(kind)){
   for(let i=0;i<15;i++){const x=((i*91+time*.024)%(W+100)+W+100)%(W+100)-60,y=70+noise(i*9)*400;
    line(c,x,y,x+15,y-38,feature+'8a',2+noise(i)*2);}
