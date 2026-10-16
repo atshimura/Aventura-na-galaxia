@@ -17,3 +17,9 @@
 #stage-select{max-width:100%;font-size:clamp(11px,1.7vw,15px);font-weight:750}
 #next-stage{box-shadow:0 0 18px #55ffaa33}
 @media(max-height:420px){.stage-info{font-size:9px;min-height:10px}#stage-select{padding:3px 6px}}
+
+.explore-btn{position:absolute;left:max(14px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom));z-index:4;background:linear-gradient(135deg,#ffe4a0,#ffa758);color:#2b1d3c;border:2px solid #fff2c7;border-radius:22px;font-weight:900;padding:12px 18px;font-size:clamp(12px,1.9vw,17px);max-width:52vw;animation:signal 1.4s ease-in-out infinite alternate}
+@keyframes signal{from{box-shadow:0 0 8px #ffd48a88}to{box-shadow:0 0 24px #ffd48add}}
+#planet-input{width:min(400px,65vw);border:2px solid #86e8ff;border-radius:13px;color:#fff;background:#0b1a3de8;padding:12px;font:700 17px system-ui;text-align:center}
+#planet-input:focus-visible{outline:3px solid #f4d389}
+@media(max-height:340px){.explore-btn{padding:7px 12px;bottom:9px}#planet-input{padding:6px;font-size:13px}}

@@ -1,6 +1,6 @@
 # 🚀 Aventura na Galáxia
 
-Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.3.0: campanha com 20 fases, desbloqueio e cenários variados**, não o jogo completo de 20 fases.
+Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.4.0: campanha com planetas visitáveis, biomas próprios e novos perigos**, não o jogo completo de 20 fases.
 
 ## O que já funciona
 - Tela horizontal, voo para a direita, comando por arrastar o dedo.
@@ -68,3 +68,13 @@ A fase 1 continua sendo um protótipo; futuros mundos e missões não estão imp
 - Ao vencer a fase 20, registra-se a descoberta da **Galáxia das Maravilhas**. A exploração livre e suas dez fases permanecem para uma etapa futura.
 
 Para desenvolver: loja, missões, diálogos e conteúdo especial da galáxia secreta ainda não integram esta versão.
+
+## Versão 0.4.0 — novas fases visualmente distintas e planetas exploráveis
+- Cada fase tem um **planeta próprio** e paisagem associada (gelo, florestas luminosas, cristais, lava, oceanos, desertos, ruínas, cidades, tempestades etc.).
+- Durante o voo, um planeta entra em cena. Ao tocar em **🪐 EXPLORAR PLANETA**, o tempo da fase fica suspenso e o foguete começa uma incursão de cerca de 16 segundos, com novos perigos do bioma e **cristais que valem 3 moedas**.
+- Ao concluir a incursão, o jogador pode **escolher e salvar um nome para o planeta**, retornando à mesma fase. Os planetas descobertos e seus nomes são preservados no armazenamento local.
+- **Novos perigos cumulativos** aparecem nas fases avançadas: destroços (4), cometas (5), minas (7), plasma (9), drones (12), cristais perigosos (15) e vórtices (18). Asteroides, satélites e naves das fases anteriores continuam aparecendo.
+- O menu indica quais planetas já foram explorados. Música, joystick, caixas-surpresa e acoplagem à estação permanecem.
+- A incursão ao planeta é opcional; ainda não implementa exploração totalmente livre, diálogos alienígenas nem missões secundárias. Esses recursos permanecem no planejamento.
+
+**Instalação:** APK de desenvolvimento (assinatura de debug). Faça cópia das informações importantes antes de desinstalar versões anteriores.

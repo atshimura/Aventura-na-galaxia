@@ -1,5 +1,7 @@
 import {GameState, WIDTH, HEIGHT, STAGE_SECONDS, REPAIR_COST, TOTAL_STAGES, STAGES, canPlayStage, normalizePointer, joystickVector, stationPose, sanitizeSave} from './core.mjs';
 import {SpaceAudio} from './music.mjs';
+import {getPlanet} from './world.mjs';
+import {drawSpaceEnvironment,drawPlanetEnvironment,drawPlanetApproach,drawHazard,drawGem} from './world-render.mjs';
 const $=id=>document.getElementById(id);
 const canvas=$('scene'),ctx=canvas.getContext('2d');
 const KEY='aventura-na-galaxia-v1';
@@ -15,7 +17,8 @@ function configureStageSelect(){
  sel.innerHTML=options.join('');
  selectedStage=canPlayStage(game.save,selectedStage)?selectedStage:Math.min(TOTAL_STAGES,game.save.completed+1);
  sel.value=String(selectedStage);
- $('stage-info').textContent=`${STAGES[selectedStage-1].icon} ${STAGES[selectedStage-1].name} • ${selectedStage<=game.save.completed?'Concluída':'Próxima missão'}`;
+ const p=getPlanet(selectedStage),name=game.save.planetNames[selectedStage]||p.name;
+ $('stage-info').textContent=`${STAGES[selectedStage-1].icon} ${STAGES[selectedStage-1].name} • 🪐 ${name} ${game.save.exploredPlanets[selectedStage]?'✓ visitado':'por descobrir'}`;
  $('start').textContent=`🚀 JOGAR — FASE ${selectedStage}`;
 }
 $('stage-select').addEventListener('change',e=>{selectedStage=Number(e.target.value);configureStageSelect();});
@@ -32,7 +35,7 @@ function updateStick(e){
   knob.style.transform=`translate(-50%,-50%) translate(${(x*scale).toFixed(1)}px,${(y*scale).toFixed(1)}px)`;
 }
 stick.addEventListener('pointerdown',e=>{
-  if(game.state!=='playing'||steeringPointer!==null)return;
+  if(!['playing','exploring'].includes(game.state)||steeringPointer!==null)return;
   e.preventDefault();steeringPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e);
 });
 stick.addEventListener('pointermove',e=>{if(e.pointerId===steeringPointer){e.preventDefault();updateStick(e);}});
@@ -42,9 +45,10 @@ stick.addEventListener('lostpointercapture',e=>{if(e.pointerId===steeringPointer
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(game.save))}catch{/* armazenamento indisponível */}}
 function panels(active){
   displayMode=active;
-  for(const id of ['menu','pause-menu','result'])$(id).classList.toggle('hidden',active!==id);
+  for(const id of ['menu','pause-menu','result','planet-name'])$(id).classList.toggle('hidden',active!==id);
   $('hud').classList.toggle('hidden',active!=='playing');
-  stick.classList.toggle('hidden',active!=='playing'||game.state!=='playing');
+  stick.classList.toggle('hidden',active!=='playing'||!['playing','exploring'].includes(game.state));
+  $('explore-btn').classList.toggle('hidden',active!=='playing'||!game.canExplorePlanet());
 }
 function menu(){audio.pause();resetSteering();game.state='menu';panels('menu');configureStageSelect();$('menu-wallet').textContent=`🪙 ${game.save.wallet} moedas`;$('menu-best').textContent=`🏆 Recorde: ${game.save.best}`;$('sound').textContent=game.save.sound?'🎵 Música e efeitos: ligados':'🔇 Música e efeitos: desligados';}
 function begin(stage=selectedStage){
@@ -57,7 +61,7 @@ function result(){
  audio.pause();persist();const victory=game.state==='victory',stage=game.stage;
  panels('result');$('result-icon').textContent=victory?(stage.number===TOTAL_STAGES?'🏆':'🛰️'):'💥';
  $('result-title').textContent=victory?(stage.number===TOTAL_STAGES?'ESTAÇÃO LENDÁRIA!':`FASE ${stage.number} CONCLUÍDA!`):'FIM DE JOGO';
- $('result-desc').textContent=victory?`Você explorou ${stage.name} e estacionou na estação espacial!`:`Você perdeu os três corações na fase ${stage.number}. Pode tentar de novo!`;
+ $('result-desc').textContent=victory?`Você atravessou ${stage.name} e estacionou! ${game.planetVisited?'🪐 Planeta explorado.':'Ainda há um planeta para visitar nesta fase.'}`:`Você perdeu os três corações na fase ${stage.number}. Pode tentar novamente!`;
  $('result-score').textContent=game.score;$('result-wallet').textContent=game.save.wallet;
  $('repair-info').classList.toggle('hidden',!victory);$('repair').classList.toggle('hidden',!victory);
  $('next-stage').classList.toggle('hidden',!victory||stage.number===TOTAL_STAGES);
@@ -66,21 +70,24 @@ function result(){
  updateRepair();
 }
 function updateRepair(){$('repair').disabled=game.hearts>=3||game.save.wallet<REPAIR_COST;$('repair').textContent=game.hearts>=3?'❤️ FOGUETE TOTALMENTE CONSERTADO':`🔧 RECUPERAR 1 CORAÇÃO — ${REPAIR_COST} 🪙`;}
-function updateHud(){$('hearts').textContent='❤️ '.repeat(game.hearts).trim()+' 🖤'.repeat(3-game.hearts);$('hearts').setAttribute('aria-label',`${game.hearts} vidas restantes`);$('score').textContent=`⭐ ${game.score} ${game.score===1?'PONTO':'PONTOS'}`;$('wallet').textContent=`🪙 ${game.save.wallet}`;$('shield').hidden=!game.shield;$('progress-fill').style.width=`${Math.min(100,game.elapsed/game.duration*100).toFixed(1)}%`; $('stage-hud').textContent=`${game.stage.icon} FASE ${game.stage.number}`;}
+function updateHud(){$('hearts').textContent='❤️ '.repeat(game.hearts).trim()+' 🖤'.repeat(3-game.hearts);$('hearts').setAttribute('aria-label',`${game.hearts} vidas restantes`);$('score').textContent=`⭐ ${game.score} ${game.score===1?'PONTO':'PONTOS'}`;$('wallet').textContent=`🪙 ${game.save.wallet}`;$('shield').hidden=!game.shield;$('progress-fill').style.width=`${Math.min(100,(game.state==='exploring'?game.planetElapsed/game.planetDuration:game.elapsed/game.duration)*100).toFixed(1)}%`; $('stage-hud').textContent=game.state==='exploring'?`${game.planet.icon} ${game.planet.name}`:`${game.stage.icon} FASE ${game.stage.number}`; $('explore-btn').classList.toggle('hidden',!game.canExplorePlanet());}
 function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');toastTimeout=1.4;}
+$('explore-btn').addEventListener('click',()=>{if(game.enterPlanet()){resetSteering();panels('playing');audio.sound('dock');toast('🌍 Explorando o planeta!');updateHud();}});
+$('name-planet').addEventListener('click',()=>{if(game.namePlanet($('planet-input').value)){persist();audio.unlock();panels('playing');toast('🪐 Planeta registrado!');framePrevious=performance.now();}});
+$('planet-input').addEventListener('keydown',e=>{if(e.key==='Enter')$('name-planet').click();});
 $('start').addEventListener('click',()=>begin(selectedStage));$('retry').addEventListener('click',()=>begin(game.stage.number));$('next-stage').addEventListener('click',()=>begin(game.stage.number+1));$('home').addEventListener('click',menu);$('quit').addEventListener('click',menu);
 $('pause').addEventListener('click',()=>{resetSteering();game.pause();audio.pause();panels('pause-menu');});
 $('resume').addEventListener('click',()=>{audio.unlock();game.resume();panels('playing');framePrevious=performance.now();});
 $('repair').addEventListener('click',()=>{if(game.repair()){persist();$('result-wallet').textContent=game.save.wallet;updateRepair();audio.sound('pickup');}});
 $('sound').addEventListener('click',()=>{game.save.sound=!game.save.sound;persist();audio.setEnabled(game.save.sound);menu();});
 function updatePointer(e){const p=normalizePointer(e.clientX,e.clientY,canvas.getBoundingClientRect());game.setTarget(p.x,p.y);}
-canvas.addEventListener('pointerdown',e=>{if(game.state!=='playing')return;canvas.setPointerCapture(e.pointerId);updatePointer(e);});
-canvas.addEventListener('pointermove',e=>{if(game.state==='playing'&&(e.buttons||e.pointerType==='touch'))updatePointer(e);});
+canvas.addEventListener('pointerdown',e=>{if(!['playing','exploring'].includes(game.state))return;canvas.setPointerCapture(e.pointerId);updatePointer(e);});
+canvas.addEventListener('pointermove',e=>{if(['playing','exploring'].includes(game.state)&&(e.buttons||e.pointerType==='touch'))updatePointer(e);});
 canvas.addEventListener('pointerup',e=>{if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&(game.state==='playing'||game.state==='docking')){$('pause').click();}});
-window.addEventListener('blur',()=>{if(game.state==='playing'||game.state==='docking'){$('pause').click();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&['playing','exploring','docking'].includes(game.state)){$('pause').click();}});
+window.addEventListener('blur',()=>{if(['playing','exploring','docking'].includes(game.state)){$('pause').click();}});
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){if(game.state==='playing'||game.state==='docking'){$('pause').click();}else if(game.state==='paused'){$('resume').click();}}
+  if(e.key==='Escape'){if(['playing','exploring','docking'].includes(game.state)){$('pause').click();}else if(game.state==='paused'){$('resume').click();}}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)){keys.add(e.key);e.preventDefault();}
 });
 document.addEventListener('keyup',e=>{keys.delete(e.key);});
@@ -94,6 +101,7 @@ function background(t){const theme=game.stage, bg=ctx.createLinearGradient(0,0,0
   planets.forEach((p,index)=>{let x=((p.x+theme.number*119-t*p.speed+290)%(WIDTH+450)+(WIDTH+450))%(WIDTH+450)-230;
     const light=ctx.createRadialGradient(x-p.r*.32,p.y-p.r*.4,3,x,p.y,p.r*1.06);light.addColorStop(0,index%2?theme.glow:theme.accent);light.addColorStop(.7,theme.nebula);light.addColorStop(1,'#0b0c30');
     ctx.fillStyle=light;ctx.beginPath();ctx.arc(x,p.y,p.r,0,7);ctx.fill();ctx.strokeStyle='#cda8ef66';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,p.y,p.r*1.36,p.r*.35,-.24,0,2*Math.PI);ctx.stroke();});
+  drawSpaceEnvironment(ctx,game,t);
   for(const s of stars){const x=((s.x-t*s.speed)%WIDTH+WIDTH)%WIDTH;const alpha=.4+Math.sin(t*.002+s.phase)*.25;ctx.fillStyle=`rgba(218,246,255,${alpha})`;ctx.beginPath();ctx.arc(x,s.y,s.r,0,Math.PI*2);ctx.fill();if(s.glow>.95)glow(x,s.y,11,'#7de9fc44');}
 }
 function drawRocket(x,y,t,invincible=0,shield=false,docked=false){ctx.save();ctx.translate(x,y);if(invincible>0&&Math.floor(t/95)%2===0)ctx.globalAlpha=.48;
@@ -178,13 +186,15 @@ function station(t){
  ctx.restore();
 }
 function render(t){
- const active=['playing','paused','docking','gameover','victory'].includes(game.state);
- const shift=active?game.distance:t*.04;background(shift);
+ const active=['playing','paused','docking','gameover','victory','exploring','naming'].includes(game.state);
+ const shift=active?game.distance:t*.04;
+ if(['exploring','naming'].includes(game.state)||(game.state==='paused'&&game.pauseFrom==='exploring'))drawPlanetEnvironment(ctx,game,t);else background(shift);
  if(active){
    const fade=game.state==='docking'?Math.max(0,1-game.dockingProgress*2):1;
    ctx.save();ctx.globalAlpha=fade;
-   for(const o of game.objects){if(o.kind==='asteroid')asteroid(o);else if(o.kind==='satellite')satellite(o);else if(o.kind==='ship')ship(o);else if(o.kind==='coin')coin(o,t);else if(o.kind==='crate')crate(o,t);}
+   for(const o of game.objects){if(o.kind==='asteroid')asteroid(o);else if(o.kind==='satellite')satellite(o);else if(o.kind==='ship')ship(o);else if(o.kind==='coin')coin(o,t);else if(o.kind==='crate')crate(o,t);else if(o.kind==='gem')drawGem(ctx,o,t);else drawHazard(ctx,o,t);}
    ctx.restore();
+   if(game.state==='playing')drawPlanetApproach(ctx,game,t);
    if(game.dockingProgress>0||game.state==='victory')station(t);
    const docked=game.state==='victory';
    drawRocket(game.rocket.x,game.rocket.y+(docked?0:Math.sin(t/155)*2),t,docked?0:game.invincible,game.shield,docked);
@@ -193,27 +203,28 @@ function render(t){
 }
 function loop(now){
  const dt=framePrevious?Math.min(.05,(now-framePrevious)/1000):0;framePrevious=now;
- if(game.state==='playing'){
+ if(game.state==='playing'||game.state==='exploring'){
    const keyboard={x:Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a')),
      y:Number(keys.has('ArrowDown')||keys.has('s'))-Number(keys.has('ArrowUp')||keys.has('w'))};
    const input=steeringPointer!==null?steering:keyboard;
    const mag=Math.hypot(input.x,input.y);
    if(mag>.0001)game.steer({x:input.x/Math.max(1,mag),y:input.y/Math.max(1,mag)},dt);
  }
- if(game.state==='playing'||game.state==='docking'){
+ if(['playing','exploring','docking'].includes(game.state)){
    const previous=game.state;game.update(dt);let dirty=false;
    for(const event of game.events){
-     if(event==='Moeda coletada!'){dirty=true;audio.sound('pickup');}
+     if(event==='Moeda coletada!'||event==='Cristal coletado!'){dirty=true;audio.sound('pickup');}
      else if(event==='Colisão!')audio.sound('hit');
      else if(['Escudo ativado!','Coração recuperado!','Invencibilidade!'].includes(event)){audio.sound('crate');toast(event);}
      else if(event==='Aproximação à estação espacial!'){resetSteering();audio.sound('dock');toast('🛰️ Aproximando da estação!');panels('playing');}
+     else if(event==='Planeta explorado!'){dirty=true;resetSteering();audio.sound('win');$('planet-input').value=game.save.planetNames[game.stage.number]||'';$('planet-input').placeholder=`Nome para ${game.planet.name} (opcional)`;panels('planet-name');}
      else if(event==='Fase concluída!')audio.sound('win');
    }
    if(dirty||previous!==game.state)persist();
    updateHud();
    if(game.state==='gameover'||game.state==='victory'){if(game.state==='victory')selectedStage=Math.min(TOTAL_STAGES,game.stage.number+1);resetSteering();audio.pause();result();}
  }
- audio.tick(game.state==='playing'||game.state==='docking');
+ audio.tick(['playing','exploring','docking'].includes(game.state));
  if(toastTimeout>0){toastTimeout-=dt;if(toastTimeout<=0)$('toast').classList.remove('visible');}
  render(now);requestAnimationFrame(loop);
 }
