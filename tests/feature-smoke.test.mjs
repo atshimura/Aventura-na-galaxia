@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const base=new URL('../web/',import.meta.url);
+const html=readFileSync(new URL('index.html',base),'utf8');
+const css=readFileSync(new URL('style.css',base),'utf8');
+const main=readFileSync(new URL('main.mjs',base),'utf8');
+test('joystick exibido na interface e com toque capturado',()=>{assert.match(html,/id="joystick"/);assert.match(html,/id="joystick-knob"/);assert.match(css,/touch-action:none/);assert.match(main,/setPointerCapture/);});
+test('áudio carrega módulo offline e inicia após gesto',()=>{assert.match(main,/from '\.\/music.mjs'/);assert.match(main,/audio\.unlock\(\)/);assert.match(main,/audio\.setEnabled/);});
+test('estação é desenhada durante aproximação',()=>{assert.match(main,/game\.dockingProgress>0\|\|game\.state==='victory'/);assert.match(main,/function station\(t\)/);});
+test('satélites e naves têm detalhamento adicional',()=>{assert.match(main,/function satellite\(o\)/);assert.match(main,/function ship\(o\)/);assert.match(main,/createLinearGradient/);});
