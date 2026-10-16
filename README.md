@@ -1,6 +1,6 @@
 # 🚀 Aventura na Galáxia
 
-Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.2.0: protótipo com joystick, música e acoplagem**, não o jogo completo de 20 fases.
+Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.3.0: campanha com 20 fases, desbloqueio e cenários variados**, não o jogo completo de 20 fases.
 
 ## O que já funciona
 - Tela horizontal, voo para a direita, comando por arrastar o dedo.
@@ -57,3 +57,14 @@ Veja [`docs/PLANO.md`](docs/PLANO.md) para os requisitos completos.
 - Testes da música, do joystick, do ciclo de vida, da aproximação e da acoplagem.
 
 A fase 1 continua sendo um protótipo; futuros mundos e missões não estão implementados.
+
+## Novidades da v0.3.0 — campanha principal de 20 fases
+- **20 regiões nomeadas** com paletas de cores próprias, planetas e fundos variáveis.
+- Menu de seleção de fase, apenas fases desbloqueadas; após chegar à estação, a próxima é liberada.
+- Níveis com dificuldade crescente: mais obstáculos e velocidade, com novos padrões de movimento dos obstáculos introduzidos progressivamente.
+- Duração por fase varia de 48 a 68 segundos, incluindo a manobra final de estacionamento.
+- Corações restantes passam para a próxima fase, com reparo na estação a 25 moedas por coração; após perder todas as vidas, a mesma fase pode ser repetida com três corações.
+- Pontuação por fase registrada localmente, compatível com salvamentos anteriores.
+- Ao vencer a fase 20, registra-se a descoberta da **Galáxia das Maravilhas**. A exploração livre e suas dez fases permanecem para uma etapa futura.
+
+Para desenvolver: loja, missões, diálogos e conteúdo especial da galáxia secreta ainda não integram esta versão.
