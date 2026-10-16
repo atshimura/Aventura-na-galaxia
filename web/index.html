@@ -15,6 +15,10 @@
       <div class="hud-group center"><span class="hud-pill" id="score">⭐ 0 PONTOS</span><span class="hud-pill" id="wallet">🪙 0</span></div>
       <div class="hud-group"><div class="progress"><div id="progress-fill"></div></div><button id="pause" class="round-btn" aria-label="Pausar">Ⅱ</button></div>
     </section>
+    <div id="joystick" class="joystick hidden" role="group" aria-label="Controle virtual do foguete: mova em qualquer direção">
+      <div class="joystick-ring" aria-hidden="true"><div class="joystick-knob" id="joystick-knob"></div></div>
+      <span class="joystick-label" aria-hidden="true">MOVER</span>
+    </div>
     <section id="menu" class="overlay" aria-labelledby="game-title">
       <div class="hero-icon" aria-hidden="true">🚀</div>
       <p class="eyebrow">UMA AVENTURA NO ESPAÇO</p>
@@ -25,7 +29,7 @@
         <select id="difficulty"><option value="facil">🟢 Fácil</option><option selected value="normal">🟡 Normal</option><option value="dificil">🔴 Difícil</option></select>
       </div>
       <div class="menu-footer"><span id="menu-wallet">🪙 0 moedas</span><span id="menu-best">🏆 Recorde: 0</span><button id="sound" class="muted-button">🔊 Som ligado</button></div>
-      <p class="tiny">Arraste o foguete com o dedo para desviar e coletar moedas.</p>
+      <p class="tiny">Use o controle circular no canto direito ou arraste o foguete para desviar e coletar moedas. A música começa ao tocar em JOGAR.</p>
     </section>
     <section id="pause-menu" class="overlay hidden" aria-labelledby="pause-title">
       <h2 id="pause-title">⏸️ PAUSADO</h2><p class="sub">Pronto para continuar sua exploração?</p>
