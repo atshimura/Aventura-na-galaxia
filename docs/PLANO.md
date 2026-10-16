@@ -17,7 +17,7 @@
 
 ## Etapas de implementação
 1. **v0.1.0 (concluída):** primeira fase, obstáculos, moedas, vidas, dificuldades, caixas-surpresa, pausa, áudio, estação e conserto; APK compilado e abertura verificada no emulador.
-2. **v0.2.0 (concluída):** música instrumental offline, joystick virtual no canto direito, satélites e naves mais detalhados, aproximação e estacionamento animados; 43 testes automatizados, APK e emulador aprovados.\n3. **Progressão:** 20 fases principais e Modo Infinito, com obstáculos e temas progressivos.
+2. **v0.2.0 (concluída):** música instrumental offline, joystick virtual no canto direito, satélites e naves mais detalhados, aproximação e estacionamento animados; 43 testes automatizados, APK e emulador aprovados.\n3. **v0.3.0 (concluída):** 20 fases principais com temas, duração e padrões de obstáculos progressivos; seleção/desbloqueio e salvamento de pontuação por fase. Modo Infinito fica para a próxima versão.
 4. **Economia:** loja de foguetes, melhorias e radar, custos equilibrados e progressão persistente.
 5. **Exploração:** planetas, nomes, regiões secretas, missões, diálogos e personagens.
 6. **Conteúdo final:** estação lendária, Galáxia das Maravilhas, 10 fases extras e testes ampliados.

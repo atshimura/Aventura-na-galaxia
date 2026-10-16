@@ -12,7 +12,7 @@
     <canvas id="scene" width="960" height="540" aria-label="Espaço com foguete, obstáculos e moedas"></canvas>
     <section class="hud hidden" id="hud" aria-live="off">
       <div class="hud-group"><span id="hearts" aria-label="Três vidas">❤️ ❤️ ❤️</span><span class="hud-pill" id="shield" hidden>🛡️ ESCUDO</span></div>
-      <div class="hud-group center"><span class="hud-pill" id="score">⭐ 0 PONTOS</span><span class="hud-pill" id="wallet">🪙 0</span></div>
+      <div class="hud-group center"><span class="hud-pill stage-pill" id="stage-hud">🌌 FASE 1</span><span class="hud-pill" id="score">⭐ 0 PONTOS</span><span class="hud-pill" id="wallet">🪙 0</span></div>
       <div class="hud-group"><div class="progress"><div id="progress-fill"></div></div><button id="pause" class="round-btn" aria-label="Pausar">Ⅱ</button></div>
     </section>
     <div id="joystick" class="joystick hidden" role="group" aria-label="Controle virtual do foguete: mova em qualquer direção">
@@ -24,7 +24,11 @@
       <p class="eyebrow">UMA AVENTURA NO ESPAÇO</p>
       <h1 id="game-title">AVENTURA <span>NA GALÁXIA</span></h1>
       <p class="sub">Explore mundos mágicos, desvie dos perigos e colete moedas douradas!</p>
-      <div class="menu-actions"><button class="primary" id="start">🚀 JOGAR — FASE 1</button>
+      <div class="menu-actions">
+        <label class="difficulty-label" for="stage-select">ESCOLHA SUA FASE</label>
+        <select id="stage-select" aria-label="Selecionar fase desbloqueada"><option value="1">1 · Nebulosa Aurora</option></select>
+        <p class="stage-info" id="stage-info">Explore a primeira região da galáxia.</p>
+        <button class="primary" id="start">🚀 JOGAR — FASE 1</button>
         <label class="difficulty-label" for="difficulty">DIFICULDADE</label>
         <select id="difficulty"><option value="facil">🟢 Fácil</option><option selected value="normal">🟡 Normal</option><option value="dificil">🔴 Difícil</option></select>
       </div>
@@ -41,8 +45,8 @@
       <div class="result-stats"><div><strong id="result-score">0</strong><small>MOEDAS COLETADAS</small></div><div><strong id="result-wallet">0</strong><small>MOEDAS NA CARTEIRA</small></div></div>
       <p id="repair-info" class="muted">Conserte o foguete por 25 moedas por coração.</p>
       <button id="repair" class="secondary">🔧 RECUPERAR 1 CORAÇÃO — 25 🪙</button>
-      <button id="retry" class="primary">🚀 JOGAR NOVAMENTE</button><button id="home" class="secondary">⌂ MENU INICIAL</button>
-      <p class="tiny" id="result-note">As outras fases serão acrescentadas nas próximas versões.</p>
+      <button id="next-stage" class="primary hidden">➡️ PRÓXIMA FASE</button><button id="retry" class="secondary">🔄 REPETIR FASE</button><button id="home" class="secondary">⌂ MENU INICIAL</button>
+      <p class="tiny" id="result-note">Ganhe acesso à fase seguinte ao chegar à estação!</p>
     </section>
     <div id="toast" role="status" aria-live="polite"></div>
   </main>

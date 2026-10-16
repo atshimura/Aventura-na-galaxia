@@ -10,3 +10,10 @@
 .joystick-knob{position:absolute;left:50%;top:50%;width:38%;height:38%;transform:translate(-50%,-50%);border-radius:50%;border:2px solid #c4f7ff;background:radial-gradient(circle at 28% 23%,#c9f9ff,#4b9fda 44%,#205087 90%);box-shadow:0 3px 10px #0008,0 0 12px #4de6ff99;will-change:transform;pointer-events:none}
 .joystick-label{position:absolute;top:-15px;left:0;right:0;color:#c8f2ff;font-weight:800;text-align:center;font-size:10px;letter-spacing:.16em;text-shadow:0 1px 4px #00112e;pointer-events:none}
 @media(max-height:350px){.joystick{width:100px;height:100px;bottom:12px;right:12px}.joystick-label{font-size:9px}}
+
+/* Progressão de vinte fases. Mostra apenas fases liberadas, sem rolagem horizontal. */
+.stage-pill{border-color:#80e6ea88;color:#baf6ff}
+.stage-info{font-size:clamp(10px,1.4vw,13px);color:#c5e2fc;margin:0;text-align:center;min-height:15px}
+#stage-select{max-width:100%;font-size:clamp(11px,1.7vw,15px);font-weight:750}
+#next-stage{box-shadow:0 0 18px #55ffaa33}
+@media(max-height:420px){.stage-info{font-size:9px;min-height:10px}#stage-select{padding:3px 6px}}
