@@ -1,34 +1,64 @@
-import {GameState, WIDTH, HEIGHT, STAGE_SECONDS, REPAIR_COST, normalizePointer, sanitizeSave} from './core.mjs';
+import {GameState, WIDTH, HEIGHT, STAGE_SECONDS, REPAIR_COST, normalizePointer, joystickVector, stationPose, sanitizeSave} from './core.mjs';
+import {SpaceAudio} from './music.mjs';
 const $=id=>document.getElementById(id);
 const canvas=$('scene'),ctx=canvas.getContext('2d');
 const KEY='aventura-na-galaxia-v1';
 function loadSave(){try{return sanitizeSave(JSON.parse(localStorage.getItem(KEY)))}catch{return sanitizeSave(null)}}
 let game=new GameState({save:loadSave()});
-let toastTimeout=0,framePrevious=0,displayMode='menu',audio=null,lastBeat=-1;
+let toastTimeout=0,framePrevious=0,displayMode='menu';
+const audio=new SpaceAudio(window);
+let steeringPointer=null,steering={x:0,y:0},keys=new Set();
+const stick=$('joystick'),knob=$('joystick-knob');
+function resetSteering(){steeringPointer=null;steering={x:0,y:0};knob.style.transform='translate(-50%,-50%)';game.stopSteering();}
+function updateStick(e){
+  const r=stick.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;
+  const radius=Math.min(r.width,r.height)*.34;
+  steering=joystickVector(x,y,radius);
+  const mag=Math.hypot(x,y),scale=mag>radius?radius/mag:1;
+  knob.style.transform=`translate(-50%,-50%) translate(${(x*scale).toFixed(1)}px,${(y*scale).toFixed(1)}px)`;
+}
+stick.addEventListener('pointerdown',e=>{
+  if(game.state!=='playing'||steeringPointer!==null)return;
+  e.preventDefault();steeringPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e);
+});
+stick.addEventListener('pointermove',e=>{if(e.pointerId===steeringPointer){e.preventDefault();updateStick(e);}});
+function releaseStick(e){if(e.pointerId!==steeringPointer)return;resetSteering();if(stick.hasPointerCapture(e.pointerId))stick.releasePointerCapture(e.pointerId);}
+stick.addEventListener('pointerup',releaseStick);stick.addEventListener('pointercancel',releaseStick);
+stick.addEventListener('lostpointercapture',e=>{if(e.pointerId===steeringPointer)resetSteering();});
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(game.save))}catch{/* armazenamento indisponível */}}
-function panels(active){displayMode=active;for(const id of ['menu','pause-menu','result'])$(id).classList.toggle('hidden',active!==id);$('hud').classList.toggle('hidden',active!=='playing');}
-function menu(){game.state='menu';panels('menu');$('menu-wallet').textContent=`🪙 ${game.save.wallet} moedas`;$('menu-best').textContent=`🏆 Recorde: ${game.save.best}`;$('sound').textContent=game.save.sound?'🔊 Som ligado':'🔇 Som desligado';}
-function begin(){initAudio();game=new GameState({difficulty:$('difficulty').value,save:game.save});game.start();panels('playing');updateHud();framePrevious=performance.now();}
-function result(){persist();const victory=game.state==='victory';panels('result');$('result-icon').textContent=victory?'🛰️':'💥';$('result-title').textContent=victory?'ESTAÇÃO ESPACIAL!':'FIM DE JOGO';$('result-desc').textContent=victory?'Você concluiu a primeira fase e chegou à estação espacial!':'Você perdeu os três corações. Tente novamente a mesma fase!';$('result-score').textContent=game.score;$('result-wallet').textContent=game.save.wallet;$('repair-info').classList.toggle('hidden',!victory);$('repair').classList.toggle('hidden',!victory);$('result-note').textContent=victory?'Esta é a versão inicial: as demais fases serão criadas nas próximas etapas.':'Suas moedas e o recorde ficam guardados para a próxima tentativa.';updateRepair();}
+function panels(active){
+  displayMode=active;
+  for(const id of ['menu','pause-menu','result'])$(id).classList.toggle('hidden',active!==id);
+  $('hud').classList.toggle('hidden',active!=='playing');
+  stick.classList.toggle('hidden',active!=='playing'||game.state!=='playing');
+}
+function menu(){audio.pause();resetSteering();game.state='menu';panels('menu');$('menu-wallet').textContent=`🪙 ${game.save.wallet} moedas`;$('menu-best').textContent=`🏆 Recorde: ${game.save.best}`;$('sound').textContent=game.save.sound?'🎵 Música e efeitos: ligados':'🔇 Música e efeitos: desligados';}
+function begin(){
+  audio.setEnabled(game.save.sound);audio.unlock();
+  game=new GameState({difficulty:$('difficulty').value,save:game.save});game.start();
+  resetSteering();panels('playing');updateHud();framePrevious=performance.now();
+}
+function result(){audio.pause();persist();const victory=game.state==='victory';panels('result');$('result-icon').textContent=victory?'🛰️':'💥';$('result-title').textContent=victory?'ESTAÇÃO ESPACIAL!':'FIM DE JOGO';$('result-desc').textContent=victory?'Você concluiu a primeira fase e chegou à estação espacial!':'Você perdeu os três corações. Tente novamente a mesma fase!';$('result-score').textContent=game.score;$('result-wallet').textContent=game.save.wallet;$('repair-info').classList.toggle('hidden',!victory);$('repair').classList.toggle('hidden',!victory);$('result-note').textContent=victory?'Esta é a versão inicial: as demais fases serão criadas nas próximas etapas.':'Suas moedas e o recorde ficam guardados para a próxima tentativa.';updateRepair();}
 function updateRepair(){$('repair').disabled=game.hearts>=3||game.save.wallet<REPAIR_COST;$('repair').textContent=game.hearts>=3?'❤️ FOGUETE TOTALMENTE CONSERTADO':`🔧 RECUPERAR 1 CORAÇÃO — ${REPAIR_COST} 🪙`;}
 function updateHud(){$('hearts').textContent='❤️ '.repeat(game.hearts).trim()+' 🖤'.repeat(3-game.hearts);$('hearts').setAttribute('aria-label',`${game.hearts} vidas restantes`);$('score').textContent=`⭐ ${game.score} ${game.score===1?'PONTO':'PONTOS'}`;$('wallet').textContent=`🪙 ${game.save.wallet}`;$('shield').hidden=!game.shield;$('progress-fill').style.width=`${Math.min(100,game.elapsed/STAGE_SECONDS*100).toFixed(1)}%`;}
 function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');toastTimeout=1.4;}
 $('start').addEventListener('click',begin);$('retry').addEventListener('click',begin);$('home').addEventListener('click',menu);$('quit').addEventListener('click',menu);
-$('pause').addEventListener('click',()=>{game.pause();panels('pause-menu');});$('resume').addEventListener('click',()=>{game.resume();panels('playing');framePrevious=performance.now();});
-$('repair').addEventListener('click',()=>{if(game.repair()){persist();$('result-wallet').textContent=game.save.wallet;updateRepair();sound('pickup');}});
-$('sound').addEventListener('click',()=>{game.save.sound=!game.save.sound;persist();menu();if(game.save.sound)initAudio();});
+$('pause').addEventListener('click',()=>{resetSteering();game.pause();audio.pause();panels('pause-menu');});
+$('resume').addEventListener('click',()=>{audio.unlock();game.resume();panels('playing');framePrevious=performance.now();});
+$('repair').addEventListener('click',()=>{if(game.repair()){persist();$('result-wallet').textContent=game.save.wallet;updateRepair();audio.sound('pickup');}});
+$('sound').addEventListener('click',()=>{game.save.sound=!game.save.sound;persist();audio.setEnabled(game.save.sound);menu();});
 function updatePointer(e){const p=normalizePointer(e.clientX,e.clientY,canvas.getBoundingClientRect());game.setTarget(p.x,p.y);}
 canvas.addEventListener('pointerdown',e=>{if(game.state!=='playing')return;canvas.setPointerCapture(e.pointerId);updatePointer(e);});
 canvas.addEventListener('pointermove',e=>{if(game.state==='playing'&&(e.buttons||e.pointerType==='touch'))updatePointer(e);});
 canvas.addEventListener('pointerup',e=>{if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&game.state==='playing'){game.pause();panels('pause-menu');}});
-window.addEventListener('blur',()=>{if(game.state==='playing'){game.pause();panels('pause-menu');}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(game.state==='playing'){$('pause').click();}else if(game.state==='paused'){$('resume').click();}}});
-// Música sintetizada, sem arquivos externos e sem conexão à internet.
-function initAudio(){if(!game.save.sound)return;try{const AudioContext=window.AudioContext||window.webkitAudioContext;if(AudioContext){audio??=new AudioContext();audio.resume().catch(()=>{});}}catch{audio=null}}
-function beep(hz,length=.12,kind='sine',vol=.045,when=0){if(!game.save.sound||!audio||audio.state!=='running')return;try{const now=audio.currentTime+when,o=audio.createOscillator(),g=audio.createGain();o.type=kind;o.frequency.setValueAtTime(hz,now);g.gain.setValueAtTime(0.0001,now);g.gain.exponentialRampToValueAtTime(vol,now+.018);g.gain.exponentialRampToValueAtTime(.0001,now+length);o.connect(g).connect(audio.destination);o.start(now);o.stop(now+length+.02);}catch{}}
-function sound(kind){if(kind==='pickup'){beep(730,.1,'triangle');beep(1080,.17,'sine',.03,.07);}else if(kind==='hit'){beep(130,.38,'sawtooth',.065);}else if(kind==='crate'){beep(540,.17,'triangle');beep(830,.25,'triangle',.045,.14);}else if(kind==='win'){[392,523,659,784].forEach((f,i)=>beep(f,.33,'triangle',.07,i*.16));}}
-function music(){if(!audio||!game.save.sound||game.state!=='playing')return;const beat=Math.floor(game.elapsed*2.4);if(beat!==lastBeat){lastBeat=beat;const notes=[196,247,294,392,330,294,247,220];beep(notes[beat%notes.length],.27,'sine',.019);if(beat%4===0)beep(98,.5,'triangle',.014);}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&(game.state==='playing'||game.state==='docking')){$('pause').click();}});
+window.addEventListener('blur',()=>{if(game.state==='playing'||game.state==='docking'){$('pause').click();}});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){if(game.state==='playing'||game.state==='docking'){$('pause').click();}else if(game.state==='paused'){$('resume').click();}}
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)){keys.add(e.key);e.preventDefault();}
+});
+document.addEventListener('keyup',e=>{keys.delete(e.key);});
+window.addEventListener('blur',()=>{keys.clear();resetSteering();});
 const seeded=(seed)=>()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};const rand=seeded(71926);
 const stars=Array.from({length:125},(_,i)=>({x:rand()*WIDTH,y:rand()*HEIGHT,r:.6+rand()*1.6,speed:.08+rand()*.30,glow:rand(),phase:rand()*7}));
 const planets=[{x:730,y:138,r:115,c1:'#b73fae',c2:'#3b3ca2',speed:.08},{x:150,y:460,r:82,c1:'#32b1b1',c2:'#18467b',speed:.12},{x:1120,y:390,r:58,c1:'#e98d60',c2:'#904071',speed:.1}];
@@ -40,9 +70,9 @@ function background(t){const bg=ctx.createLinearGradient(0,0,0,HEIGHT);bg.addCol
     ctx.fillStyle=light;ctx.beginPath();ctx.arc(x,p.y,p.r,0,7);ctx.fill();ctx.strokeStyle='#cda8ef66';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,p.y,p.r*1.36,p.r*.35,-.24,0,2*Math.PI);ctx.stroke();});
   for(const s of stars){const x=((s.x-t*s.speed)%WIDTH+WIDTH)%WIDTH;const alpha=.4+Math.sin(t*.002+s.phase)*.25;ctx.fillStyle=`rgba(218,246,255,${alpha})`;ctx.beginPath();ctx.arc(x,s.y,s.r,0,Math.PI*2);ctx.fill();if(s.glow>.95)glow(x,s.y,11,'#7de9fc44');}
 }
-function drawRocket(x,y,t,invincible=0,shield=false){ctx.save();ctx.translate(x,y);if(invincible>0&&Math.floor(t/95)%2===0)ctx.globalAlpha=.48;
-  const thrust=14+Math.sin(t/77)*8;const fire=ctx.createLinearGradient(-58,0,-12,0);fire.addColorStop(0,'#f65d42');fire.addColorStop(.4,'#ffa44a');fire.addColorStop(1,'#f7f4bd');ctx.fillStyle=fire;
-  ctx.beginPath();ctx.moveTo(-23,-11);ctx.quadraticCurveTo(-45,-8,-56-thrust,0);ctx.quadraticCurveTo(-42,8,-23,11);ctx.fill();
+function drawRocket(x,y,t,invincible=0,shield=false,docked=false){ctx.save();ctx.translate(x,y);if(invincible>0&&Math.floor(t/95)%2===0)ctx.globalAlpha=.48;
+  const thrust=docked?0:14+Math.sin(t/77)*8;const fire=ctx.createLinearGradient(-58,0,-12,0);fire.addColorStop(0,'#f65d42');fire.addColorStop(.4,'#ffa44a');fire.addColorStop(1,'#f7f4bd');ctx.fillStyle=fire;
+  if(!docked){ctx.beginPath();ctx.moveTo(-23,-11);ctx.quadraticCurveTo(-45,-8,-56-thrust,0);ctx.quadraticCurveTo(-42,8,-23,11);ctx.fill();}
   ctx.fillStyle='#f95f94';ctx.beginPath();ctx.moveTo(-15,-9);ctx.lineTo(-36,-29);ctx.lineTo(7,-16);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(-15,9);ctx.lineTo(-36,29);ctx.lineTo(7,16);ctx.closePath();ctx.fill();
   let body=ctx.createLinearGradient(0,-18,0,18);body.addColorStop(0,'#fbfcff');body.addColorStop(.55,'#b8e6ff');body.addColorStop(1,'#4e97dd');ctx.fillStyle=body;ctx.beginPath();ctx.moveTo(-33,-16);ctx.lineTo(17,-16);ctx.quadraticCurveTo(34,-7,43,0);ctx.quadraticCurveTo(34,7,17,16);ctx.lineTo(-33,16);ctx.closePath();ctx.fill();
   ctx.strokeStyle='#77e9ff';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#173d85';ctx.beginPath();ctx.arc(5,-1,10,0,7);ctx.fill();ctx.fillStyle='#68eeff';ctx.beginPath();ctx.arc(4,-3,7,0,7);ctx.fill();ctx.fillStyle='#ecfffd';ctx.beginPath();ctx.arc(1,-6,2,0,7);ctx.fill();
@@ -71,5 +101,5 @@ function loop(now){const dt=framePrevious?(now-framePrevious)/1000:0;framePrevio
   render(now);requestAnimationFrame(loop);}
 menu();requestAnimationFrame(loop);
 // Somente para testes de integração no navegador; não modifica a interface.
-if(typeof window!=='undefined'&&new URLSearchParams(location.search).has('test'))window.__gameTest={get game(){return game},begin,menu};
+if(typeof window!=='undefined'&&new URLSearchParams(location.search).has('test'))window.__gameTest={get game(){return game},get steering(){return steering},begin,menu};
 
