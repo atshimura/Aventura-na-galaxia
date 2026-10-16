@@ -1,23 +1,31 @@
-# Relatório de testes — v0.1.0
+# Relatório de validação — Aventura na Galáxia v0.2.0
 
-Data: 15/10/2026.
+## Execução de referência
+GitHub Actions (commit de código `1cce32e1d6b5f86579e50d90dc13f85e61a84685`):
+https://github.com/atshimura/Aventura-na-galaxia/actions/runs/38977266884
 
-## Resultado validado
-- 21 testes automatizados: **21 aprovados, 0 falhas** (Node 22, GitHub Actions).
-- Compilação `assembleDebug`: **aprovada** (Gradle 8.9, JDK 17, Android SDK 35).
-- APK Android gerado, validado como arquivo assinado de depuração; inclui os módulos locais.
-- Emulador Android 35: **instalação e inicialização aprovadas**.
-- Screenshot da tela inicial verificado: jogo na horizontal com menu e controles visíveis.
-- Sem `FATAL EXCEPTION` e sem `ANR in br.com.aventuranagalaxia` no logcat da execução aprovada.
-- Execução de referência: https://github.com/atshimura/Aventura-na-galaxia/actions/runs/38825459905.
+PR integrado: https://github.com/atshimura/Aventura-na-galaxia/pull/1
 
-## Correções realizadas
-1. Remoção da dependência de pacote Android SDK `tools` obsoleto no pipeline.
-2. Troca do motivo HTTP da resposta WebView `Não encontrado` por `Not Found`, exigência de caracteres ASCII.
-3. Remoção do modo imersivo que acionava um aviso intrusivo e falhas de resposta no emulador, mantendo o jogo horizontal.
-4. Correção dos comandos de shell no job de emulador e verificação de erros `ANR`/`FATAL EXCEPTION`.
+## Resultado
+- Testes automatizados Node: **43 aprovados, 0 reprovados**.
+- Compilação Android Gradle `assembleDebug`: **sucesso**. APK `versionName=0.2.0`, `versionCode=2`.
+- Instalação e inicialização do APK no emulador Android (API 35): **sucesso**.
+- Inspeção do arquivo APK: módulo `music.mjs`, jogo, `main.mjs`, `core.mjs`, CSS e HTML incluídos em `assets/`.
+- Teste interativo no Chromium com os assets extraídos **do APK compilado**, feito adicionalmente:
+  - Áudio inicializado após clicar em JOGAR: `AudioContext.state=running` e agendamento de notas (etapa 4 após ~800 ms).
+  - Controle virtual à direita: deslocou alvo do foguete do X=153 para X≈358.
+  - Ao chegar ao tempo restante de oito segundos: estado `docking`, estação visível, controle suspenso.
+  - Passados mais oito segundos: estado `victory`, foguete parado junto ao porto da estação.
+  - **Nenhuma exceção JavaScript** durante o teste de interface.
 
-## Limitações e próximos testes
-- Primeira versão contém apenas **uma fase**. Os demais recursos estão planejados.
-- A verificação de emulador cobriu **instalação, abertura e tela inicial**; não equivale a um teste de ponta a ponta de toda a jogabilidade.
-- Teste de uso prolongado, entrada por toque, áudio e persistência em aparelho Android real ainda é recomendado.
+## Mudanças
+1. Música instrumental em Web Audio iniciada por gesto, com controle liga/desliga e sem baixar áudio externo.
+2. Satélites e naves redesenhados com detalhamento técnico e efeito de profundidade em 2D.
+3. Entrada gradual da estação e manobra automática de acoplagem antes da vitória.
+4. Joystick analógico no canto inferior direito, mantendo arrasto e setas/WASD.
+
+## Observações e testes futuros
+- A música foi validada tecnicamente (contexto ativo e notas agendadas); a qualidade e volume no alto-falante do aparelho requerem escuta humana.
+- A primeira fase continua sendo o protótipo atual; as demais fases estão planejadas.
+- Recomenda-se testar com os dedos em telas Android reais de diferentes dimensões, incluindo conforto da velocidade e posição do joystick.
+- O APK é **debug**, destinado a testes; uma distribuição final exigirá assinatura e publicação apropriadas.
