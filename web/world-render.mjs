@@ -76,7 +76,7 @@ export function drawSpaceEnvironment(c,game,time){
 }
 export function drawPlanetApproach(c,game,time){
  if(!game.canExplorePlanet())return;const p=getPlanet(game.stage.number),q=(game.elapsed/game.duration-.27)/.35;
- const x=1060-590*q,y=318+Math.sin(time/900)*8,r=92+23*Math.sin(q*PI);
+ const x=1060-1250*q,y=318+Math.sin(time/900)*8,r=92+23*Math.sin(q*PI);
  c.save();c.shadowColor=p.highlight;c.shadowBlur=20;
  const g=c.createRadialGradient(x-r*.35,y-r*.4,3,x,y,r);g.addColorStop(0,p.highlight);g.addColorStop(.7,p.sky);g.addColorStop(1,'#0c1332');
  c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,PI*2);c.fill();c.shadowBlur=0;
