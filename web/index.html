@@ -15,6 +15,7 @@
       <div class="hud-group center"><span class="hud-pill stage-pill" id="stage-hud">🌌 FASE 1</span><span class="hud-pill" id="score">⭐ 0 PONTOS</span><span class="hud-pill" id="wallet">🪙 0</span></div>
       <div class="hud-group"><div class="progress"><div id="progress-fill"></div></div><button id="pause" class="round-btn" aria-label="Pausar">Ⅱ</button></div>
     </section>
+    <button id="explore-btn" class="explore-btn hidden" aria-label="Explorar planeta próximo">🪐 EXPLORAR PLANETA</button>
     <div id="joystick" class="joystick hidden" role="group" aria-label="Controle virtual do foguete: mova em qualquer direção">
       <div class="joystick-ring" aria-hidden="true"><div class="joystick-knob" id="joystick-knob"></div></div>
       <span class="joystick-label" aria-hidden="true">MOVER</span>
@@ -23,7 +24,7 @@
       <div class="hero-icon" aria-hidden="true">🚀</div>
       <p class="eyebrow">UMA AVENTURA NO ESPAÇO</p>
       <h1 id="game-title">AVENTURA <span>NA GALÁXIA</span></h1>
-      <p class="sub">Explore mundos mágicos, desvie dos perigos e colete moedas douradas!</p>
+      <p class="sub">Visite planetas, explore biomas e descubra novos perigos durante as fases!</p>
       <div class="menu-actions">
         <label class="difficulty-label" for="stage-select">ESCOLHA SUA FASE</label>
         <select id="stage-select" aria-label="Selecionar fase desbloqueada"><option value="1">1 · Nebulosa Aurora</option></select>
@@ -33,7 +34,14 @@
         <select id="difficulty"><option value="facil">🟢 Fácil</option><option selected value="normal">🟡 Normal</option><option value="dificil">🔴 Difícil</option></select>
       </div>
       <div class="menu-footer"><span id="menu-wallet">🪙 0 moedas</span><span id="menu-best">🏆 Recorde: 0</span><button id="sound" class="muted-button">🔊 Som ligado</button></div>
-      <p class="tiny">Use o controle circular no canto direito ou arraste o foguete para desviar e coletar moedas. A música começa ao tocar em JOGAR.</p>
+      <p class="tiny">Use o controle circular no canto direito ou arraste o foguete para desviar e coletar moedas. Quando aparecer EXPLORAR PLANETA, toque para visitar e nomear um mundo!</p>
+    </section>
+    <section id="planet-name" class="overlay hidden" aria-labelledby="planet-name-title">
+      <div class="hero-icon">🪐</div><h2 id="planet-name-title">PLANETA DESCOBERTO!</h2>
+      <p class="sub">Você explorou um mundo novo! Escolha seu nome.</p>
+      <label class="difficulty-label" for="planet-input">NOME DO PLANETA (OPCIONAL)</label>
+      <input id="planet-input" type="text" maxlength="32" autocomplete="off" placeholder="Nome do planeta">
+      <button class="primary" id="name-planet">🚀 SALVAR E VOLTAR AO ESPAÇO</button>
     </section>
     <section id="pause-menu" class="overlay hidden" aria-labelledby="pause-title">
       <h2 id="pause-title">⏸️ PAUSADO</h2><p class="sub">Pronto para continuar sua exploração?</p>
