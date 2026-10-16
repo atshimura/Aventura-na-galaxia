@@ -1,10 +1,24 @@
-import {GameState, WIDTH, HEIGHT, STAGE_SECONDS, REPAIR_COST, normalizePointer, joystickVector, stationPose, sanitizeSave} from './core.mjs';
+import {GameState, WIDTH, HEIGHT, STAGE_SECONDS, REPAIR_COST, TOTAL_STAGES, STAGES, canPlayStage, normalizePointer, joystickVector, stationPose, sanitizeSave} from './core.mjs';
 import {SpaceAudio} from './music.mjs';
 const $=id=>document.getElementById(id);
 const canvas=$('scene'),ctx=canvas.getContext('2d');
 const KEY='aventura-na-galaxia-v1';
 function loadSave(){try{return sanitizeSave(JSON.parse(localStorage.getItem(KEY)))}catch{return sanitizeSave(null)}}
 let game=new GameState({save:loadSave()});
+let selectedStage=Math.min(TOTAL_STAGES,game.save.completed+1);
+function configureStageSelect(){
+ const sel=$('stage-select'),options=[];
+ for(const stage of STAGES){
+   const unlocked=canPlayStage(game.save,stage.number),crown=stage.number<=game.save.completed?' ✅':'';
+   options.push(`<option value="${stage.number}" ${unlocked?'':'disabled'}>${stage.number}. ${stage.name}${crown}${unlocked?'':' 🔒'}</option>`);
+ }
+ sel.innerHTML=options.join('');
+ selectedStage=canPlayStage(game.save,selectedStage)?selectedStage:Math.min(TOTAL_STAGES,game.save.completed+1);
+ sel.value=String(selectedStage);
+ $('stage-info').textContent=`${STAGES[selectedStage-1].icon} ${STAGES[selectedStage-1].name} • ${selectedStage<=game.save.completed?'Concluída':'Próxima missão'}`;
+ $('start').textContent=`🚀 JOGAR — FASE ${selectedStage}`;
+}
+$('stage-select').addEventListener('change',e=>{selectedStage=Number(e.target.value);configureStageSelect();});
 let toastTimeout=0,framePrevious=0,displayMode='menu';
 const audio=new SpaceAudio(window);
 let steeringPointer=null,steering={x:0,y:0},keys=new Set();
@@ -32,17 +46,29 @@ function panels(active){
   $('hud').classList.toggle('hidden',active!=='playing');
   stick.classList.toggle('hidden',active!=='playing'||game.state!=='playing');
 }
-function menu(){audio.pause();resetSteering();game.state='menu';panels('menu');$('menu-wallet').textContent=`🪙 ${game.save.wallet} moedas`;$('menu-best').textContent=`🏆 Recorde: ${game.save.best}`;$('sound').textContent=game.save.sound?'🎵 Música e efeitos: ligados':'🔇 Música e efeitos: desligados';}
-function begin(){
+function menu(){audio.pause();resetSteering();game.state='menu';panels('menu');configureStageSelect();$('menu-wallet').textContent=`🪙 ${game.save.wallet} moedas`;$('menu-best').textContent=`🏆 Recorde: ${game.save.best}`;$('sound').textContent=game.save.sound?'🎵 Música e efeitos: ligados':'🔇 Música e efeitos: desligados';}
+function begin(stage=selectedStage){
   audio.setEnabled(game.save.sound);audio.unlock();
-  game=new GameState({difficulty:$('difficulty').value,save:game.save});game.start();
+  if(!canPlayStage(game.save,stage))return;
+  selectedStage=stage;game=new GameState({difficulty:$('difficulty').value,save:game.save,stage});game.start();
   resetSteering();panels('playing');updateHud();framePrevious=performance.now();
 }
-function result(){audio.pause();persist();const victory=game.state==='victory';panels('result');$('result-icon').textContent=victory?'🛰️':'💥';$('result-title').textContent=victory?'ESTAÇÃO ESPACIAL!':'FIM DE JOGO';$('result-desc').textContent=victory?'Você concluiu a primeira fase e chegou à estação espacial!':'Você perdeu os três corações. Tente novamente a mesma fase!';$('result-score').textContent=game.score;$('result-wallet').textContent=game.save.wallet;$('repair-info').classList.toggle('hidden',!victory);$('repair').classList.toggle('hidden',!victory);$('result-note').textContent=victory?'Esta é a versão inicial: as demais fases serão criadas nas próximas etapas.':'Suas moedas e o recorde ficam guardados para a próxima tentativa.';updateRepair();}
+function result(){
+ audio.pause();persist();const victory=game.state==='victory',stage=game.stage;
+ panels('result');$('result-icon').textContent=victory?(stage.number===TOTAL_STAGES?'🏆':'🛰️'):'💥';
+ $('result-title').textContent=victory?(stage.number===TOTAL_STAGES?'ESTAÇÃO LENDÁRIA!':`FASE ${stage.number} CONCLUÍDA!`):'FIM DE JOGO';
+ $('result-desc').textContent=victory?`Você explorou ${stage.name} e estacionou na estação espacial!`:`Você perdeu os três corações na fase ${stage.number}. Pode tentar de novo!`;
+ $('result-score').textContent=game.score;$('result-wallet').textContent=game.save.wallet;
+ $('repair-info').classList.toggle('hidden',!victory);$('repair').classList.toggle('hidden',!victory);
+ $('next-stage').classList.toggle('hidden',!victory||stage.number===TOTAL_STAGES);
+ $('retry').textContent=`🔄 REPETIR FASE ${stage.number}`;
+ $('result-note').textContent=victory?(stage.number===TOTAL_STAGES?'🏆 Galáxia das Maravilhas desbloqueada! Sua exploração será ampliada em uma próxima atualização.':`🌟 ${STAGES[stage.number].name} desbloqueada! Volte ao menu para escolher outras fases.`):'Seu progresso anterior, moedas e recordes estão salvos.';
+ updateRepair();
+}
 function updateRepair(){$('repair').disabled=game.hearts>=3||game.save.wallet<REPAIR_COST;$('repair').textContent=game.hearts>=3?'❤️ FOGUETE TOTALMENTE CONSERTADO':`🔧 RECUPERAR 1 CORAÇÃO — ${REPAIR_COST} 🪙`;}
-function updateHud(){$('hearts').textContent='❤️ '.repeat(game.hearts).trim()+' 🖤'.repeat(3-game.hearts);$('hearts').setAttribute('aria-label',`${game.hearts} vidas restantes`);$('score').textContent=`⭐ ${game.score} ${game.score===1?'PONTO':'PONTOS'}`;$('wallet').textContent=`🪙 ${game.save.wallet}`;$('shield').hidden=!game.shield;$('progress-fill').style.width=`${Math.min(100,game.elapsed/STAGE_SECONDS*100).toFixed(1)}%`;}
+function updateHud(){$('hearts').textContent='❤️ '.repeat(game.hearts).trim()+' 🖤'.repeat(3-game.hearts);$('hearts').setAttribute('aria-label',`${game.hearts} vidas restantes`);$('score').textContent=`⭐ ${game.score} ${game.score===1?'PONTO':'PONTOS'}`;$('wallet').textContent=`🪙 ${game.save.wallet}`;$('shield').hidden=!game.shield;$('progress-fill').style.width=`${Math.min(100,game.elapsed/game.duration*100).toFixed(1)}%`; $('stage-hud').textContent=`${game.stage.icon} FASE ${game.stage.number}`;}
 function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');toastTimeout=1.4;}
-$('start').addEventListener('click',begin);$('retry').addEventListener('click',begin);$('home').addEventListener('click',menu);$('quit').addEventListener('click',menu);
+$('start').addEventListener('click',()=>begin(selectedStage));$('retry').addEventListener('click',()=>begin(game.stage.number));$('next-stage').addEventListener('click',()=>begin(game.stage.number+1));$('home').addEventListener('click',menu);$('quit').addEventListener('click',menu);
 $('pause').addEventListener('click',()=>{resetSteering();game.pause();audio.pause();panels('pause-menu');});
 $('resume').addEventListener('click',()=>{audio.unlock();game.resume();panels('playing');framePrevious=performance.now();});
 $('repair').addEventListener('click',()=>{if(game.repair()){persist();$('result-wallet').textContent=game.save.wallet;updateRepair();audio.sound('pickup');}});
@@ -63,10 +89,10 @@ const seeded=(seed)=>()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967
 const stars=Array.from({length:125},(_,i)=>({x:rand()*WIDTH,y:rand()*HEIGHT,r:.6+rand()*1.6,speed:.08+rand()*.30,glow:rand(),phase:rand()*7}));
 const planets=[{x:730,y:138,r:115,c1:'#b73fae',c2:'#3b3ca2',speed:.08},{x:150,y:460,r:82,c1:'#32b1b1',c2:'#18467b',speed:.12},{x:1120,y:390,r:58,c1:'#e98d60',c2:'#904071',speed:.1}];
 function glow(x,y,r,color){const gr=ctx.createRadialGradient(x,y,1,x,y,r);gr.addColorStop(0,color);gr.addColorStop(1,'transparent');ctx.fillStyle=gr;ctx.fillRect(x-r,y-r,r*2,r*2);}
-function background(t){const bg=ctx.createLinearGradient(0,0,0,HEIGHT);bg.addColorStop(0,'#060b29');bg.addColorStop(.5,'#14134e');bg.addColorStop(1,'#0a1744');ctx.fillStyle=bg;ctx.fillRect(0,0,WIDTH,HEIGHT);
-  glow(660,150,390,'#5920a650');glow(170,470,315,'#057fba2c');glow(900,510,250,'#ff428020');
-  planets.forEach(p=>{let x=((p.x-t*p.speed+290)%(WIDTH+450)+(WIDTH+450))%(WIDTH+450)-230;
-    const light=ctx.createRadialGradient(x-p.r*.32,p.y-p.r*.4,3,x,p.y,p.r*1.06);light.addColorStop(0,p.c1);light.addColorStop(.7,p.c2);light.addColorStop(1,'#0b0c30');
+function background(t){const theme=game.stage, bg=ctx.createLinearGradient(0,0,0,HEIGHT);bg.addColorStop(0,'#060b29');bg.addColorStop(.55,theme.nebula+'65');bg.addColorStop(1,'#0a1744');ctx.fillStyle=bg;ctx.fillRect(0,0,WIDTH,HEIGHT);
+  glow(660,150,390,theme.nebula+'50');glow(170,470,315,theme.glow+'2c');glow(900,510,250,theme.accent+'23');
+  planets.forEach((p,index)=>{let x=((p.x+theme.number*119-t*p.speed+290)%(WIDTH+450)+(WIDTH+450))%(WIDTH+450)-230;
+    const light=ctx.createRadialGradient(x-p.r*.32,p.y-p.r*.4,3,x,p.y,p.r*1.06);light.addColorStop(0,index%2?theme.glow:theme.accent);light.addColorStop(.7,theme.nebula);light.addColorStop(1,'#0b0c30');
     ctx.fillStyle=light;ctx.beginPath();ctx.arc(x,p.y,p.r,0,7);ctx.fill();ctx.strokeStyle='#cda8ef66';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,p.y,p.r*1.36,p.r*.35,-.24,0,2*Math.PI);ctx.stroke();});
   for(const s of stars){const x=((s.x-t*s.speed)%WIDTH+WIDTH)%WIDTH;const alpha=.4+Math.sin(t*.002+s.phase)*.25;ctx.fillStyle=`rgba(218,246,255,${alpha})`;ctx.beginPath();ctx.arc(x,s.y,s.r,0,Math.PI*2);ctx.fill();if(s.glow>.95)glow(x,s.y,11,'#7de9fc44');}
 }
@@ -185,7 +211,7 @@ function loop(now){
    }
    if(dirty||previous!==game.state)persist();
    updateHud();
-   if(game.state==='gameover'||game.state==='victory'){resetSteering();audio.pause();result();}
+   if(game.state==='gameover'||game.state==='victory'){if(game.state==='victory')selectedStage=Math.min(TOTAL_STAGES,game.stage.number+1);resetSteering();audio.pause();result();}
  }
  audio.tick(game.state==='playing'||game.state==='docking');
  if(toastTimeout>0){toastTimeout-=dt;if(toastTimeout<=0)$('toast').classList.remove('visible');}
