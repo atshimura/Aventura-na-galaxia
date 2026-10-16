@@ -1,6 +1,6 @@
 # 🚀 Aventura na Galáxia
 
-Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.1.0: primeiro protótipo jogável**, não o jogo completo de 20 fases.
+Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.2.0: protótipo com joystick, música e acoplagem**, não o jogo completo de 20 fases.
 
 ## O que já funciona
 - Tela horizontal, voo para a direita, comando por arrastar o dedo.
@@ -48,3 +48,12 @@ Veja [`docs/PLANO.md`](docs/PLANO.md) para os requisitos completos.
 - **Teste de inicialização Android 35 aprovado no emulador**, com captura de tela, sem FATAL EXCEPTION ou ANR no processo do jogo.
 - Execução aprovada: [GitHub Actions #38825459905](https://github.com/atshimura/Aventura-na-galaxia/actions/runs/38825459905).
 - Validação manual da jogabilidade em aparelho real ainda recomendada.
+
+## Novidades da versão 0.2.0
+- Trilha musical instrumental e efeitos feitos com Web Audio e gerados localmente (sem acesso à internet). A reprodução começa após tocar em **JOGAR**; o menu permite desligá-la.
+- **Controle analógico virtual no canto inferior direito**, com área central neutra e movimentação em todas as direções. O controle antigo de arrastar e setas do teclado também continuam disponíveis.
+- Naves alienígenas e satélites com gradientes metálicos, painéis solares, antenas e luzes.
+- Nos últimos oito segundos, a estação espacial entra progressivamente no cenário e o foguete realiza automaticamente uma manobra de estacionamento antes de concluir a fase.
+- Testes da música, do joystick, do ciclo de vida, da aproximação e da acoplagem.
+
+A fase 1 continua sendo um protótipo; futuros mundos e missões não estão implementados.

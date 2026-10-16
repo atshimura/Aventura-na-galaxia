@@ -1,0 +1,20 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {GameState,joystickVector,stationPose,DOCKING_SECONDS,STAGE_SECONDS} from '../web/core.mjs';
+const g=()=>new GameState({difficulty:'facil',rng:()=>.5});
+function advance(game,seconds){const count=Math.ceil(seconds/.05);for(let i=0;i<count;i++)game.update(Math.min(.05,seconds-i*.05));}
+test('analógico ignora centro morto',()=>{assert.deepEqual(joystickVector(0,0),{x:0,y:0});assert.deepEqual(joystickVector(2,1),{x:0,y:0});});
+test('analógico aceita 4 direções e limita intensidade',()=>{assert.equal(joystickVector(100,0).x,1);assert.equal(joystickVector(-100,0).x,-1);assert.equal(joystickVector(0,100).y,1);assert.equal(joystickVector(0,-100).y,-1);});
+test('controle analógico é progressivo',()=>{const v=joystickVector(32,0);assert.ok(v.x>0&&v.x<.5);});
+test('entrada não numérica não move o foguete',()=>{assert.deepEqual(joystickVector(NaN,33),{x:0,y:0});assert.deepEqual(joystickVector(2,3,0),{x:0,y:0});});
+test('controle move alvo sem ultrapassar limites',()=>{const x=g();x.start();x.steer({x:1,y:-1},.05);assert.ok(x.target.x>153&&x.target.y<270);for(let i=0;i<100;i++)x.steer({x:1,y:-1},.05);assert.equal(x.target.x,430);assert.equal(x.target.y,62);});
+test('controle desabilitado fora da fase',()=>{const x=g();x.steer({x:1,y:1},.05);assert.equal(x.target.x,153);});
+test('soltar joystick impede deriva',()=>{const x=g();x.start();x.steer({x:1,y:0},.05);x.update(.05);x.stopSteering();assert.equal(x.target.x,x.rocket.x);});
+test('estação inicialmente fora da tela e posição final correta',()=>{assert.ok(stationPose(0).x>960);assert.equal(stationPose(1).x,660);assert.equal(stationPose(1).portX,548);});
+test('aproximação da estação é contínua',()=>{let x=Infinity;for(let i=0;i<=20;i++){const station=stationPose(i/20);assert.ok(station.x<=x);x=station.x;}});
+test('manobra inicia antes do fim da fase e não credita vitória',()=>{const x=g();x.start();x.spawnObstacle=()=>{};x.spawnCoin=()=>{};x.spawnCrate=()=>{};advance(x,STAGE_SECONDS-DOCKING_SECONDS+.05);assert.equal(x.state,'docking');assert.equal(x.save.completed,0);});
+test('controle não interfere na manobra automática',()=>{const x=g();x.start();x.startDocking();const p={...x.target};x.steer({x:1,y:0},.05);assert.deepEqual(x.target,p);});
+test('acoplagem termina alinhada à porta e só então conclui',()=>{const x=g();x.start();x.spawnObstacle=()=>{};x.spawnCoin=()=>{};x.spawnCrate=()=>{};advance(x,STAGE_SECONDS+.1);assert.equal(x.state,'victory');assert.equal(x.save.completed,1);assert.equal(x.rocket.x,stationPose(1).portX);assert.equal(x.rocket.y,stationPose(1).portY);});
+test('pausa funciona durante acoplagem',()=>{const x=g();x.start();x.elapsed=STAGE_SECONDS-DOCKING_SECONDS;x.startDocking();x.update(.05);const p=x.dockingProgress;x.pause();x.update(2);assert.equal(x.dockingProgress,p);x.resume();assert.equal(x.state,'docking');x.update(.05);assert.ok(x.dockingProgress>p);});
+test('colisões ainda consomem até três vidas',()=>{const x=g();x.start();for(let i=0;i<3;i++){x.invincible=0;x.objects=[{kind:'asteroid',x:x.rocket.x,y:x.rocket.y,r:30}];x.update(.01);}assert.equal(x.state,'gameover');});
+test('moedas ainda são coletadas',()=>{const x=g();x.start();x.objects=[{kind:'coin',x:153,y:270,r:16}];x.update(.01);assert.equal(x.score,1);assert.equal(x.save.wallet,1);});

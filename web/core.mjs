@@ -15,6 +15,20 @@ function normalizePointer(clientX,clientY,rect) {return {
   x:clamp((clientX-rect.left)*WIDTH/rect.width,0,WIDTH),
   y:clamp((clientY-rect.top)*HEIGHT/rect.height,0,HEIGHT),
 };}
+/** Analógico com zona morta: qualquer direção, magnitude limitada. */
+function joystickVector(x,y,radius=64,deadZone=.14){
+  if(!Number.isFinite(x)||!Number.isFinite(y)||!(radius>0))return {x:0,y:0};
+  const nx=x/radius,ny=y/radius,m=Math.hypot(nx,ny);
+  if(m<=deadZone)return {x:0,y:0};
+  const power=(Math.min(1,m)-deadZone)/(1-deadZone);
+  return {x:nx/m*power,y:ny/m*power};
+}
+function smoothstep(t){const p=clamp(t,0,1);return p*p*(3-2*p);}
+function stationPose(progress){
+  const p=smoothstep(progress),x=WIDTH+100-400*p,y=HEIGHT/2;
+  return {x,y,portX:x-112,portY:y+11,scale:.78+.22*p};
+}
+const DOCKING_SECONDS=8;
 function freshSave(){return {wallet:0,best:0,completed:0,planetNames:{},sound:true};}
 function sanitizeSave(value){const base=freshSave();if(!value||typeof value!== 'object')return base;
   return {wallet:clamp(Math.floor(Number(value.wallet)||0),0,99999999),
@@ -30,19 +44,42 @@ class GameState {
     this.save=sanitizeSave(save);this.state='menu';this.elapsed=0;this.distance=0;
     this.rocket={x:153,y:HEIGHT/2,r:21};this.target={x:153,y:HEIGHT/2};
     this.objects=[];this.score=0;this.hearts=3;this.invincible=0;this.shield=0;
-    this.obstacleTimer=0;this.coinTimer=0;this.crateTimer=0;this.events=[];
+    this.obstacleTimer=0;this.coinTimer=0;this.crateTimer=0;this.events=[];this.dockingProgress=0;this.dockStart=null;this.pauseFrom='playing';
   }
   start(){this.state='playing';this.elapsed=0;this.distance=0;this.score=0;this.hearts=3;
     this.rocket={x:153,y:HEIGHT/2,r:21};this.target={x:153,y:HEIGHT/2};
     this.objects=[];this.invincible=1.6;this.shield=0;this.obstacleTimer=1.5;this.coinTimer=0.65;
-    this.crateTimer=11;this.events=[];
+    this.crateTimer=11;this.events=[];this.dockingProgress=0;this.dockStart=null;this.pauseFrom='playing';
   }
   setTarget(x,y){this.target.x=clamp(x,64,430);this.target.y=clamp(y,62,HEIGHT-60);}
-  pause(){if(this.state==='playing')this.state='paused';}
-  resume(){if(this.state==='paused')this.state='playing';}
+  steer(direction,dt){
+    if(this.state!=='playing')return;
+    const seconds=clamp(dt,0,.05),speed=365;
+    this.setTarget(this.target.x+direction.x*speed*seconds,this.target.y+direction.y*speed*seconds);
+  }
+  stopSteering(){if(this.state==='playing')this.setTarget(this.rocket.x,this.rocket.y);}
+  pause(){if(this.state==='playing'||this.state==='docking'){this.pauseFrom=this.state;this.state='paused';}}
+  resume(){if(this.state==='paused')this.state=this.pauseFrom;}
+  startDocking(){
+    this.state='docking';this.dockingProgress=0;
+    this.dockStart={x:this.rocket.x,y:this.rocket.y};
+    this.events.push('Aproximação à estação espacial!');
+  }
+  updateDocking(dt){
+    this.elapsed=Math.min(STAGE_SECONDS,this.elapsed+dt);
+    this.distance+=this.config.speed*dt*.35;
+    this.dockingProgress=clamp((this.elapsed-(STAGE_SECONDS-DOCKING_SECONDS))/DOCKING_SECONDS,0,1);
+    const p=smoothstep(this.dockingProgress),port=stationPose(1);
+    this.rocket.x=this.dockStart.x+(port.portX-this.dockStart.x)*p;
+    this.rocket.y=this.dockStart.y+(port.portY-this.dockStart.y)*p;
+    if(this.dockingProgress>=1){
+      this.state='victory';this.save.completed=Math.max(this.save.completed,1);
+      this.objects=[];this.events.push('Fase concluída!');
+    }
+  }
   randomRange(min,max){return min+this.rng()*(max-min);}
   spawnObstacle(){const kinds=['asteroid','asteroid','satellite','ship'];const kind=kinds[Math.min(kinds.length-1,Math.floor(this.rng()*kinds.length))];
-    const radius=kind==='asteroid'?this.randomRange(23,37):kind==='satellite'?30:27;
+    const radius=kind==='asteroid'?this.randomRange(23,37):kind==='satellite'?35:30;
     this.objects.push({kind,x:WIDTH+60,y:this.randomRange(75,HEIGHT-75),r:radius,rot:this.randomRange(0,Math.PI*2),id:this.rng()});
   }
   spawnCoin(){this.objects.push({kind:'coin',x:WIDTH+35,y:this.randomRange(72,HEIGHT-72),r:16,rot:0});}
@@ -50,10 +87,13 @@ class GameState {
   useCrate(){const chance=this.rng();if(chance<0.35){this.shield=1;this.events.push('Escudo ativado!');}
     else if(chance<0.70){this.hearts=clamp(this.hearts+1,0,3);this.events.push('Coração recuperado!');}
     else{this.invincible=Math.max(this.invincible,5);this.events.push('Invencibilidade!');}}
-  update(delta){if(this.state!=='playing')return;
-    const dt=clamp(delta,0,0.05);this.events=[];this.elapsed+=dt;this.distance+=this.config.speed*dt;
+  update(delta){if(this.state!=='playing'&&this.state!=='docking')return;
+    const dt=clamp(delta,0,0.05);this.events=[];
+    if(this.state==='docking'){this.updateDocking(dt);return;}
+    this.elapsed+=dt;this.distance+=this.config.speed*dt;
     const smoothing=Math.min(1,12*dt);this.rocket.x+=(this.target.x-this.rocket.x)*smoothing;
     this.rocket.y+=(this.target.y-this.rocket.y)*smoothing;
+    if(this.elapsed>=STAGE_SECONDS-DOCKING_SECONDS){this.elapsed=STAGE_SECONDS-DOCKING_SECONDS;this.startDocking();return;}
     this.invincible=Math.max(0,this.invincible-dt);
     this.obstacleTimer-=dt;this.coinTimer-=dt;this.crateTimer-=dt;
     if(this.obstacleTimer<=0){this.spawnObstacle();this.obstacleTimer+=this.config.obstacleDelay;}
@@ -68,7 +108,7 @@ class GameState {
     }
     this.objects=this.objects.filter(i=>!i.dead&&i.x>-70);
     if(this.score>this.save.best)this.save.best=this.score;
-    if(this.state==='playing'&&this.elapsed>=STAGE_SECONDS){this.state='victory';this.save.completed=Math.max(this.save.completed,1);this.events.push('Fase concluída!');}
+    // A vitória é registrada somente quando o foguete acoplar à estação.
   }
   repair(){if(this.state!=='victory'||this.hearts>=3||this.save.wallet<REPAIR_COST)return false;
     this.hearts++;this.save.wallet-=REPAIR_COST;this.events.push('Foguete consertado!');return true;}
@@ -76,4 +116,4 @@ class GameState {
 }
 
 
-export {WIDTH,HEIGHT,STAGE_SECONDS,REPAIR_COST,normalizePointer,sanitizeSave,GameState,freshSave,intersects};
+export {WIDTH,HEIGHT,STAGE_SECONDS,DOCKING_SECONDS,REPAIR_COST,normalizePointer,joystickVector,stationPose,sanitizeSave,GameState,freshSave,intersects};
