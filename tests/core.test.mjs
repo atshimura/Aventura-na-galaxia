@@ -12,7 +12,12 @@ test('colisão após invencibilidade consome uma vida',()=>{const x=g();x.start(
 test('intervalo de imunidade impede perda de várias vidas',()=>{const x=g();x.start();x.invincible=0;x.objects=[{kind:'asteroid',x:153,y:270,r:30},{kind:'asteroid',x:154,y:270,r:30}];x.update(.01);assert.equal(x.hearts,2);});
 test('3 colisões separadas encerram a tentativa',()=>{const x=g();x.start();for(let i=0;i<3;i++){x.invincible=0;x.objects=[{kind:'asteroid',x:153,y:270,r:30}];x.update(.01);}assert.equal(x.hearts,0);assert.equal(x.state,'gameover');});
 test('escudo bloqueia dano uma vez',()=>{const x=g();x.start();x.invincible=0;x.shield=1;x.objects=[{kind:'asteroid',x:153,y:270,r:30}];x.update(.01);assert.equal(x.hearts,3);assert.equal(x.shield,0);});
-test('caixas concedem poderes sem ultrapassar 3 corações',()=>{const x=g();x.start();x.hearts=3;x.useCrate();assert.equal(x.hearts,3);x.rng=()=>.9;x.useCrate();assert.ok(x.invincible>=5);});
+test('caixas nunca ultrapassam três corações nem concedem invencibilidade longa',()=>{
+ const x=g();x.start();x.hearts=3;
+ assert.notEqual(x.useCrate(),'heart');
+ assert.equal(x.hearts,3);
+ assert.ok(x.invincible<=1.6);
+});
 test('vitória após duração e preservação do progresso',()=>{const x=g();x.start();x.objects=[];x.spawnObstacle=()=>{};x.spawnCoin=()=>{};x.spawnCrate=()=>{};step(x,STAGE_SECONDS+.1);assert.equal(x.state,'victory');assert.equal(x.save.completed,1);});
 test('conserto custa 25 moedas e só é possível na estação',()=>{const x=g();x.save.wallet=50;assert.equal(x.repair(),false);x.start();x.hearts=1;x.state='victory';assert.equal(x.repair(),true);assert.equal(x.hearts,2);assert.equal(x.save.wallet,25);assert.equal(x.repair(),true);assert.equal(x.save.wallet,0);assert.equal(x.repair(),false);});
 test('salvamento malformado é saneado',()=>{assert.equal(sanitizeSave({wallet:-300,best:Infinity,completed:99,sound:false}).wallet,0);assert.equal(sanitizeSave({completed:99}).completed,20);assert.equal(sanitizeSave(null).wallet,freshSave().wallet);});

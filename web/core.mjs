@@ -4,6 +4,37 @@ import {getPlanet,PLANET_SECONDS,planetVisible,chooseHazard,planetObstacleForBio
 import {rocketById,sanitizeRockets,DEFAULT_ROCKET,purchase,equip} from './rockets.mjs';
 import {WORLD_LENGTH,FLIGHT_PAD_X,groundAt,createPlanetLevel,newAstronaut,jumpAstronaut,moveAstronaut,collision,updatePlanetObjects,respawnAstronaut,canBoard} from './platformer.mjs';
 const HAZARD_RADIUS={asteroid:29,satellite:35,ship:30,debris:24,comet:27,mine:28,plasma:31,drone:30,crystal:26,vortex:31};
+// Pesos aprovados para sorteios entre prêmios úteis (renormalizados a cada caixinha).
+const CRATE_REWARDS=Object.freeze([
+ Object.freeze({id:'shield',weight:20}),
+ Object.freeze({id:'heart',weight:18}),
+ Object.freeze({id:'magnet',weight:19}),
+ Object.freeze({id:'treasure',weight:20}),
+ Object.freeze({id:'freeze',weight:13}),
+ Object.freeze({id:'cleanse',weight:10})
+]);
+const MAGNET_SECONDS=8, FREEZE_SECONDS=6, FREEZE_MULTIPLIER=.3;
+const MAGNET_RADIUS=225, MAGNET_PULL_SPEED=250, CLEANSE_AHEAD=380, CLEANSE_BEHIND=135, CLEANSE_VERTICAL=195;
+function cleanseTarget(obj,rocket){
+ return obj&&!obj.dead&&(obj.kind==='laser'||Object.hasOwn(HAZARD_RADIUS,obj.kind))
+  &&Number.isFinite(obj.x)&&Number.isFinite(obj.y)
+  &&obj.x>=rocket.x-CLEANSE_BEHIND&&obj.x<=rocket.x+CLEANSE_AHEAD
+  &&Math.abs(obj.y-rocket.y)<=CLEANSE_VERTICAL;
+}
+function eligibleCrateRewards(game){
+ return CRATE_REWARDS.filter(r=>{
+  if(r.id==='shield')return !game.shield;
+  if(r.id==='heart')return game.hearts<3;
+  if(r.id==='cleanse')return game.objects.some(o=>cleanseTarget(o,game.rocket));
+  return true; // ímã e congelamento renovam sua duração, tesouro sempre concede moedas
+ });
+}
+function chooseCrateReward(game,rng=game.rng){
+ const available=eligibleCrateRewards(game),total=available.reduce((sum,r)=>sum+r.weight,0);
+ let roll=Math.max(0,Math.min(.999999999,Number(rng())||0))*total;
+ for(const reward of available){roll-=reward.weight;if(roll<0)return reward.id;}
+ return available.at(-1).id;
+}
 const WIDTH = 960;
 const HEIGHT = 540;
 const STAGE_SECONDS = 48;
@@ -88,6 +119,7 @@ class GameState {
     this.save=sanitizeSave(save);this.rocketModel=rocketById(this.save.selectedRocket);this.state='menu';this.elapsed=0;this.distance=0;
     this.rocket={x:153,y:HEIGHT/2,r:21};this.target={x:153,y:HEIGHT/2};
     this.objects=[];this.score=0;this.hearts=3;this.invincible=0;this.shield=0;
+    this.magnetTime=0;this.freezeTime=0;this.cleanseFlash=0;
     this.obstacleTimer=0;this.coinTimer=0;this.crateTimer=0;this.events=[];this.dockingProgress=0;this.dockStart=null;this.pauseFrom='playing';
     this.planetElapsed=0;this.planetDuration=PLANET_SECONDS;this.planetVisited=false;this.planetObstacleTimer=0;this.planetCoinTimer=0;
     this.astronaut={x:165,y:402,r:14};this.footTarget={x:165,y:402};this.walkingDistance=0;
@@ -97,7 +129,9 @@ class GameState {
   }
   start(){this.state='playing';this.elapsed=0;this.distance=0;this.score=0;this.hearts=this.mode==='infinite'?3:this.save.heartReserve;
     this.rocket={x:153,y:HEIGHT/2,r:21};this.target={x:153,y:HEIGHT/2};
-    this.objects=[];this.invincible=1.6;this.shield=this.rocketModel.shield;this.obstacleTimer=1.5;this.coinTimer=0.65;
+    this.objects=[];this.invincible=1.6;this.shield=this.rocketModel.shield;
+    this.magnetTime=0;this.freezeTime=0;this.cleanseFlash=0;
+    this.obstacleTimer=1.5;this.coinTimer=0.65;
     this.crateTimer=11;this.events=[];this.dockingProgress=0;this.dockStart=null;this.pauseFrom='playing';this.planetElapsed=0;this.planetVisited=false;this.planetObstacleTimer=1.5;this.planetCoinTimer=.6;
     this.astronaut={x:165,y:402,r:14};this.footTarget={x:165,y:402};this.walkingDistance=0;this.infiniteLevel=1;this.lasersFired=0;
     this.walkAxis=0;this.surface={objects:[]};this.cameraX=0;this.checkpointX=FLIGHT_PAD_X+38;
@@ -246,17 +280,43 @@ class GameState {
   }
   spawnCoin(kind='coin'){this.objects.push({kind,x:WIDTH+35,y:this.randomRange(72,HEIGHT-72),r:kind==='gem'?19:16,rot:0});}
   spawnCrate(){this.objects.push({kind:'crate',x:WIDTH+45,y:this.randomRange(90,HEIGHT-90),r:23,rot:0});}
-  useCrate(){const chance=this.rng();if(chance<0.35){this.shield=1;this.events.push('Escudo ativado!');}
-    else if(chance<0.70){this.hearts=clamp(this.hearts+1,0,3);this.events.push('Coração recuperado!');}
-    else{this.invincible=Math.max(this.invincible,5);this.events.push('Invencibilidade!');}}
+  useCrate(){
+    const prize=chooseCrateReward(this);
+    if(prize==='shield'){
+      this.shield=1;this.events.push('Escudo ativado!');
+    }else if(prize==='heart'){
+      this.hearts=clamp(this.hearts+1,0,3);this.events.push('Coração recuperado!');
+    }else if(prize==='magnet'){
+      this.magnetTime=MAGNET_SECONDS;this.events.push('Ímã de moedas ativado!');
+    }else if(prize==='treasure'){
+      const amount=8+Math.floor(Math.max(0,Math.min(.999999999,Number(this.rng())||0))*8);
+      this.save.wallet+=amount;this.score+=amount;
+      this.save.best=Math.max(this.save.best,this.score);
+      if(this.mode==='infinite')this.save.bestInfinite=Math.max(this.save.bestInfinite,this.score);
+      this.events.push('Tesouro espacial: +'+amount+' moedas!');
+    }else if(prize==='freeze'){
+      this.freezeTime=FREEZE_SECONDS;this.events.push('Congelamento espacial!');
+    }else if(prize==='cleanse'){
+      const targets=this.objects.filter(o=>cleanseTarget(o,this.rocket));
+      targets.forEach(o=>o.dead=true);
+      this.cleanseFlash=.55;
+      this.events.push('Raio de limpeza: '+targets.length+' perigos eliminados!');
+    }
+    return prize;
+  }
   moveObjects(dt,exploring){
     const newLasers=[];
+    const frozen=!exploring&&this.freezeTime>0;
     for(const item of this.objects){
-      if(item.kind==='laser')item.x-=(item.velocity||390)*dt;
-      else item.x-=this.config.speed*(exploring?.83:1)*dt;
-      item.age=(item.age||0)+dt;
+      if(item.dead)continue;
+      // O congelamento reduz apenas a velocidade dos perigos, nunca da nave, moedas ou caixas.
+      const hazard=item.kind==='laser'||Object.hasOwn(HAZARD_RADIUS,item.kind);
+      const step=hazard&&frozen?dt*FREEZE_MULTIPLIER:dt;
+      if(item.kind==='laser')item.x-=(item.velocity||390)*step;
+      else item.x-=this.config.speed*(exploring?.83:1)*step;
+      item.age=(item.age||0)+step;
       if(!exploring&&item.kind==='ship'&&!item.shot&&this.stage.number>=3&&item.x<860&&item.x>this.rocket.x+230){
-        item.fireDelay=(item.fireDelay??.45)-dt;
+        item.fireDelay=(item.fireDelay??.45)-step;
         if(item.fireDelay<=0){
           item.shot=true;this.lasersFired++;
           newLasers.push({kind:'laser',x:item.x-34,y:item.y,r:10,velocity:380+this.infiniteLevel*8,age:0});
@@ -267,13 +327,21 @@ class GameState {
         const phase=item.phase||0,y=item.originY??item.y;
         if(this.motion==='vertical')item.y=clamp(y+Math.sin(item.age*1.45+phase)*22,66,HEIGHT-66);
         if(this.motion==='wave')item.y=clamp(y+Math.sin(item.age*1.85+phase)*40,66,HEIGHT-66);
-        if(this.motion==='drift'){item.y=clamp(y+Math.sin(item.age*1.7+phase)*55,66,HEIGHT-66);item.x+=Math.sin(item.age*2+phase)*18*dt;}
-        if(this.motion==='complex'){item.y=clamp(y+Math.sin(item.age*2.4+phase)*60,66,HEIGHT-66);item.x+=Math.cos(item.age*2+phase)*32*dt;}
+        if(this.motion==='drift'){item.y=clamp(y+Math.sin(item.age*1.7+phase)*55,66,HEIGHT-66);item.x+=Math.sin(item.age*2+phase)*18*step;}
+        if(this.motion==='complex'){item.y=clamp(y+Math.sin(item.age*2.4+phase)*60,66,HEIGHT-66);item.x+=Math.cos(item.age*2+phase)*32*step;}
         if(item.kind==='comet')item.y=clamp(y+Math.sin(item.age*2+phase)*32,64,HEIGHT-64);
         if(item.kind==='drone')item.y=clamp(y+Math.sin(item.age*2.8+phase)*47,64,HEIGHT-64);
         if(item.kind==='vortex')item.y=clamp(y+Math.sin(item.age*1.3+phase)*58,64,HEIGHT-64);
       }
       if(item.kind==='coin'||item.kind==='gem')item.rot=(item.rot||0)+3.5*dt;
+      // O ímã puxa somente moedas do voo próximas à nave; os cristais permanecem iguais.
+      if(item.kind==='coin'&&this.magnetTime>0&&!exploring){
+        const dx=this.rocket.x-item.x,dy=this.rocket.y-item.y,d=Math.hypot(dx,dy);
+        if(d>0&&d<MAGNET_RADIUS){
+          const pull=Math.min(d,(MAGNET_PULL_SPEED+1.4*(MAGNET_RADIUS-d))*dt);
+          item.x+=dx/d*pull;item.y+=dy/d*pull;
+        }
+      }
       const player=this.state==='walking'?this.astronaut:this.rocket;
       if(item.dead||!intersects(player,item))continue;
       if(item.kind==='coin'||item.kind==='gem'){
@@ -302,7 +370,11 @@ class GameState {
     this.rocket.x+=(this.target.x-this.rocket.x)*k;
     this.rocket.y+=(this.target.y-this.rocket.y)*k;
     this.invincible=Math.max(0,this.invincible-dt);
+    // O relógio dos poderes avança apenas durante o voo, e não no menu ou pouso.
     if(this.state==='exploring')return;
+    this.magnetTime=Math.max(0,this.magnetTime-dt);
+    this.freezeTime=Math.max(0,this.freezeTime-dt);
+    this.cleanseFlash=Math.max(0,this.cleanseFlash-dt);
     this.elapsed+=dt;this.distance+=this.config.speed*dt;
     if(this.mode==='infinite'){
       this.infiniteLevel=Math.min(TOTAL_STAGES,Math.floor(this.elapsed/30)+1);
@@ -323,8 +395,8 @@ class GameState {
   }
   repair(){if(this.state!=='victory'||this.hearts>=3||this.save.wallet<REPAIR_COST)return false;
     this.hearts++;this.save.heartReserve=this.hearts;this.save.wallet-=REPAIR_COST;this.events.push('Foguete consertado!');return true;}
-  snapshot(){return {mode:this.mode,selectedRocket:this.rocketModel.id,bestInfinite:this.save.bestInfinite,state:this.state,elapsed:this.elapsed,planetElapsed:this.planetElapsed,score:this.score,hearts:this.hearts,wallet:this.save.wallet,best:this.save.best,completed:this.save.completed,stage:this.stage.number,duration:this.duration,shield:this.shield};}
+  snapshot(){return {mode:this.mode,selectedRocket:this.rocketModel.id,bestInfinite:this.save.bestInfinite,state:this.state,elapsed:this.elapsed,planetElapsed:this.planetElapsed,score:this.score,hearts:this.hearts,wallet:this.save.wallet,best:this.save.best,completed:this.save.completed,stage:this.stage.number,duration:this.duration,shield:this.shield,magnetTime:this.magnetTime,freezeTime:this.freezeTime};}
 }
 
 
-export {WIDTH,HEIGHT,STAGE_SECONDS,DOCKING_SECONDS,REPAIR_COST,TOTAL_STAGES,STAGES,getStage,stageDuration,obstacleMotion,canPlayStage,normalizePointer,joystickVector,stationPose,sanitizeSave,GameState,freshSave,intersects};
+export {WIDTH,HEIGHT,STAGE_SECONDS,DOCKING_SECONDS,REPAIR_COST,TOTAL_STAGES,STAGES,getStage,stageDuration,obstacleMotion,canPlayStage,normalizePointer,joystickVector,stationPose,sanitizeSave,GameState,freshSave,intersects,CRATE_REWARDS,eligibleCrateRewards,chooseCrateReward,MAGNET_SECONDS,FREEZE_SECONDS,FREEZE_MULTIPLIER};

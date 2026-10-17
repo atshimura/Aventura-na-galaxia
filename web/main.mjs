@@ -146,6 +146,10 @@ function updateHud(){
  $('score').textContent=`⭐ ${game.score} ${game.score===1?'PONTO':'PONTOS'}`;
  $('wallet').textContent=`🪙 ${game.save.wallet}`;
  $('shield').hidden=!game.shield;
+ const magnet=$('magnet-status'),freeze=$('freeze-status');
+ magnet.hidden=game.magnetTime<=0;freeze.hidden=game.freezeTime<=0;
+ magnet.textContent='🧲 ÍMÃ '+Math.ceil(game.magnetTime)+'s';
+ freeze.textContent='❄️ GELO '+Math.ceil(game.freezeTime)+'s';
  const groundStates=['landing','landed','disembarking','walking','boarding','takeoff'];
  const percent=groundStates.includes(game.state)?100:game.mode==='infinite'?(game.elapsed%30)/30*100:game.elapsed/game.duration*100;
  $('progress-fill').style.width=`${Math.min(100,percent).toFixed(1)}%`;
@@ -441,7 +445,29 @@ function render(t){
    if(game.dockingProgress>0||game.state==='victory')station(t);
    const docked=game.state==='victory';
    drawRocket(game.rocket.x,game.rocket.y+(docked?0:Math.sin(t/155)*2),t,docked?0:game.invincible,game.shield,docked);
+   if(game.state==='playing')drawCratePowerEffects(t);
  }else drawRocket(190,330+Math.sin(t/400)*12,t);
+}
+/** Efeitos visuais suaves dos prêmios temporários, sem novos sprites externos. */
+function drawCratePowerEffects(t){
+ const x=game.rocket.x,y=game.rocket.y;
+ if(game.magnetTime>0){
+   ctx.save();ctx.strokeStyle='#ffdc77b0';ctx.lineWidth=2;ctx.shadowBlur=13;ctx.shadowColor='#ffdd61';
+   ctx.beginPath();ctx.arc(x,y,54+4*Math.sin(t/260),0,Math.PI*2);ctx.stroke();
+   ctx.restore();
+ }
+ if(game.freezeTime>0){
+   ctx.save();ctx.strokeStyle='#a8f3ffb0';ctx.lineWidth=2.5;ctx.shadowColor='#86eaff';ctx.shadowBlur=13;
+   ctx.beginPath();ctx.arc(x,y,68+3*Math.sin(t/350),0,Math.PI*2);ctx.stroke();
+   ctx.restore();
+ }
+ if(game.cleanseFlash>0){
+   const ratio=1-game.cleanseFlash/.55;
+   ctx.save();ctx.globalAlpha=(1-ratio)*.85;ctx.lineWidth=8*(1-ratio)+2;
+   ctx.shadowBlur=28;ctx.shadowColor='#ffed9c';ctx.strokeStyle='#ffeaa3';
+   ctx.beginPath();ctx.arc(x,y,45+320*ratio,-.8,1.1);ctx.stroke();
+   ctx.restore();
+ }
 }
 function drawAstronautPlatform(x,y,t,person){
  ctx.save();ctx.translate(x,y);ctx.scale(person?.facing||1,1);
@@ -485,7 +511,10 @@ function loop(now){
      else if(event==='Ponto de salvamento ativado!'){audio.sound('checkpoint');toast('⭐ Ponto de salvamento!');}
      else if(event==='Reapareceu no ponto de salvamento!'){audio.sound('checkpoint');toast('❤️ Corações recuperados!');}
      else if(event==='Laser alienígena!')audio.sound('laser');
-     else if(['Escudo ativado!','Coração recuperado!','Invencibilidade!'].includes(event)){audio.sound('crate');toast(event);}
+     else if(['Escudo ativado!','Coração recuperado!','Ímã de moedas ativado!','Congelamento espacial!'].includes(event)||event.startsWith('Tesouro espacial:')||event.startsWith('Raio de limpeza:')){
+       if(event.startsWith('Tesouro espacial:'))dirty=true;
+       audio.sound('crate');toast(event);
+     }
      else if(event==='Aproximação à estação espacial!'){resetSteering();audio.sound('dock');toast('🛰️ Aproximando da estação!');panels('playing');}
      else if(event==='Planeta explorado!'){dirty=true;resetSteering();audio.sound('win');$('planet-input').value=game.save.planetNames[game.stage.number]||'';$('planet-input').placeholder=`Nome para ${game.planet.name} (opcional)`;panels('planet-name');}
      else if(event==='Fase concluída!')audio.sound('win');
