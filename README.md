@@ -1,6 +1,6 @@
 # 🚀 Aventura na Galáxia
 
-Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.4.0: campanha com planetas visitáveis, biomas próprios e novos perigos**, não o jogo completo de 20 fases.
+Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.6.4: campanha com 20 fases, planetas visitáveis, mapa galáctico e seis prêmios na caixinha.**
 
 ## O que já funciona
 - Tela horizontal, voo para a direita, comando por arrastar o dedo.
