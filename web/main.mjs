@@ -38,7 +38,7 @@ function updateStick(e){
   knob.style.transform=`translate(-50%,-50%) translate(${(x*scale).toFixed(1)}px,${(y*scale).toFixed(1)}px)`;
 }
 stick.addEventListener('pointerdown',e=>{
-  if(!game.state==='playing'||steeringPointer!==null)return;
+  if(!['playing','walking'].includes(game.state)||steeringPointer!==null)return;
   e.preventDefault();steeringPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e);
 });
 stick.addEventListener('pointermove',e=>{if(e.pointerId===steeringPointer){e.preventDefault();updateStick(e);}});
@@ -50,7 +50,7 @@ function panels(active){
   displayMode=active;
   for(const id of ['menu','pause-menu','result','planet-name','shop'])$(id).classList.toggle('hidden',active!==id);
   $('hud').classList.toggle('hidden',active!=='playing');
-  stick.classList.toggle('hidden',active!=='playing'||!game.state==='playing');
+  stick.classList.toggle('hidden',active!=='playing'||!['playing','walking'].includes(game.state));
   $('explore-btn').classList.toggle('hidden',active!=='playing'||!game.canExplorePlanet());
   $('leave-rocket').classList.toggle('hidden',active!=='playing'||game.state!=='landed');
   $('board-rocket').classList.toggle('hidden',active!=='playing'||game.state!=='walking'||!canBoard(game.astronaut));
@@ -137,12 +137,16 @@ function updatePointer(e){
  const p=normalizePointer(e.clientX,e.clientY,canvas.getBoundingClientRect());
  if(game.state==='playing')game.setTarget(p.x,p.y);
 }
-canvas.addEventListener('pointerdown',e=>{if(!['playing','exploring','walking'].includes(game.state))return;canvas.setPointerCapture(e.pointerId);updatePointer(e);});
-canvas.addEventListener('pointermove',e=>{if(['playing','exploring','walking'].includes(game.state)&&(e.buttons||e.pointerType==='touch'))updatePointer(e);});
+canvas.addEventListener('pointerdown',e=>{if(game.state!=='playing')return;canvas.setPointerCapture(e.pointerId);updatePointer(e);});
+canvas.addEventListener('pointermove',e=>{if(game.state==='playing'&&(e.buttons||e.pointerType==='touch'))updatePointer(e);});
 canvas.addEventListener('pointerup',e=>{if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&['playing','exploring','walking','docking'].includes(game.state)){$('pause').click();}});
 window.addEventListener('blur',()=>{if(['playing','exploring','walking','docking'].includes(game.state)){$('pause').click();}});
+$('jump-btn').addEventListener('pointerdown',e=>{
+ e.preventDefault();if(game.jump())audio.sound('jump');
+});
 document.addEventListener('keydown',e=>{
+ if((e.key===' '||e.key==='ArrowUp')&&game.state==='walking'){e.preventDefault();if(game.jump())audio.sound('jump');}
   if(e.key==='Escape'){if(['playing','exploring','walking','docking'].includes(game.state)){$('pause').click();}else if(game.state==='paused'){$('resume').click();}}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)){keys.add(e.key);e.preventDefault();}
 });
@@ -327,12 +331,16 @@ function loop(now){
    const input=steeringPointer!==null?steering:keyboard;
    const mag=Math.hypot(input.x,input.y);
    if(mag>.0001)game.steer({x:input.x/Math.max(1,mag),y:input.y/Math.max(1,mag)},dt);
+   else if(game.state==='walking')game.walkAxis=0;
  }
  if(['playing','exploring','landing','landed','disembarking','walking','boarding','takeoff','docking'].includes(game.state)){
    const previous=game.state;game.update(dt);let dirty=false;
    for(const event of game.events){
      if(event==='Moeda coletada!'||event==='Cristal coletado!'){dirty=true;audio.sound('pickup');}
-     else if(event==='Colisão!')audio.sound('hit');
+     else if(event==='Colisão!'||event==='Astronauta machucado!')audio.sound('hit');
+     else if(event==='Pouso concluído!'){audio.sound('land');toast('🛬 Foguete pousou. Toque em SAIR!');}
+     else if(event==='Ponto de salvamento ativado!'){audio.sound('checkpoint');toast('⭐ Ponto de salvamento!');}
+     else if(event==='Reapareceu no ponto de salvamento!'){audio.sound('checkpoint');toast('❤️ Corações recuperados!');}
      else if(event==='Laser alienígena!')audio.sound('laser');
      else if(['Escudo ativado!','Coração recuperado!','Invencibilidade!'].includes(event)){audio.sound('crate');toast(event);}
      else if(event==='Aproximação à estação espacial!'){resetSteering();audio.sound('dock');toast('🛰️ Aproximando da estação!');panels('playing');}
