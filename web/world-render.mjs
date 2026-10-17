@@ -8,6 +8,103 @@ const noise=n=>{let x=Math.sin(n*159.73+23.14)*43758.55;return x-Math.floor(x);}
 function hill(c,y,amp,shift,color,seed){c.beginPath();c.moveTo(0,H);
  for(let x=-20;x<W+40;x+=16)c.lineTo(x,y+amp*(.6*Math.sin(x*.015+shift+seed)+.4*Math.sin(x*.008+seed*2)));
  c.lineTo(W,H);c.closePath();c.fillStyle=color;c.fill();}
+/** Vida e vegetação parallax específicas de cada bioma, com animação leve. */
+function drawBiomeLife(c,p,shift,time){
+ const biome=p.biome,phase=time*.001,flora=['forest','coral','ocean','desert','ice','lava','aurora','crystals','rings','storm','portals','ruins','city','asteroids'].includes(biome);
+ const treeLike=['forest','ice','aurora','ruins','rings'].includes(biome);
+ if(!flora)return;
+ for(let i=0;i<12;i++){
+   const x=((i*155+p.stage*57-shift*.83)%(W+220)+W+220)%(W+220)-90;
+   const y=422+Math.sin(i*3.1+p.stage)*23;
+   const r=22+noise(i*5+p.stage)*20;
+   c.save();c.translate(x,y);
+   if(treeLike){
+     // Troncos tortos, raízes e três camadas de copa.
+     const purple=biome==='aurora'||biome==='rings';
+     const icy=biome==='ice';
+     line(c,0,45,-r*.15,-r*1.48,purple?'#9e7ad0':icy?'#d3e8f7':'#4a3a53',9);
+     line(c,0,10,-r*.58,-r*.85,purple?'#9e7ad0':'#53665f',4);
+     line(c,-2,-8,r*.44,-r*.94,purple?'#9e7ad0':'#53665f',4);
+     for(const [dx,dy,m] of [[-r*.55,-r*1.13,.70],[r*.45,-r*1.22,.78],[-r*.1,-r*1.7,1]]){
+       const halo=icy?'#e4fcff':p.highlight;
+       circle(c,dx,dy,r*m*.68,halo+'ae');
+       circle(c,dx-5,dy-6,r*m*.40,icy?'#ffffffaa':p.ground+'ee');
+     }
+     if(biome==='forest')for(let k=0;k<4;k++)circle(c,-r+(k*17),-r*.5,3,'#fff7b4');
+   }else if(['ocean','coral'].includes(biome)){
+     // Algas altas com ondulação e flores de coral.
+     for(let t=0;t<4;t++){
+       const x=t*11-17,bend=Math.sin(phase*1.3+i+t)*8;
+       c.strokeStyle=t%2?'#74ffb9':'#348aa3';c.lineWidth=4;c.lineCap='round';c.beginPath();
+       c.moveTo(x,34);c.quadraticCurveTo(x+bend,-10,x+bend*1.4,-r*1.6);c.stroke();
+       circle(c,x+bend*1.4,-r*1.6,4,p.highlight);
+     }
+     if(biome==='coral'){
+       for(let t=0;t<5;t++){line(c,0,21,(t-2)*r*.44,-r*(.5+noise(t+i)*.5),'#ff96bc',6);circle(c,(t-2)*r*.44,-r*(.5+noise(t+i)*.5),5,'#ffe3b5');}
+     }
+   }else if(biome==='desert'){
+     // Árvores-cacto e tufos dourados diferentes das florestas.
+     line(c,0,30,0,-r*1.35,'#356c45',12);circle(c,0,-r*1.35,6,'#b4f2a3');
+     line(c,0,-6,-16,-17,'#356c45',8);line(c,-16,-17,-16,-r*1.06,'#356c45',8);
+     line(c,0,-21,17,-27,'#356c45',8);line(c,17,-27,17,-r*1.19,'#356c45',8);
+   }else if(biome==='lava'){
+     // Basalto vulcânico, fungos de fogo e gases quentes.
+     poly(c,[[-18,33],[-10,-r*.9],[2,-r*1.9],[15,-r*.3],[21,33]],'#272139');
+     poly(c,[[-7,26],[1,-r*1.3],[6,-r*.2]],'#ff7544');circle(c,4,-r*.92,8,'#ffcf79a8');
+   }else if(biome==='city'||biome==='ruins'){
+     const h=r*2.1;c.fillStyle=biome==='city'?'#5d8aab':'#a7a0b7';
+     c.fillRect(-r*.45,35-h,r*.9,h);c.fillStyle=p.highlight;
+     for(let row=0;row<4;row++)for(let col=0;col<2;col++)c.fillRect(-r*.3+col*r*.34,8-h+row*15,5,8);
+     line(c,0,35-h,0,25-h,'#dcefff',2);circle(c,0,20-h,4,p.highlight);
+   }else if(biome==='storm'){
+     poly(c,[[-r,38],[0,-r*1.65],[r,38]],'#7a7ba7');
+     line(c,-3,-r*.8,10,-r*.2,'#e0feff',4);
+   }else{
+     poly(c,[[-r,34],[0,-r*1.65],[r,34]],p.highlight+'d4');
+     poly(c,[[0,-r*1.65],[r,34],[0,20]],'#fff6ec62');
+   }
+   c.restore();
+ }
+ // Animais e criaturas amigáveis. Espécies variam por grupo de bioma.
+ for(let i=0;i<7;i++){
+   const x=((i*207+p.stage*61-shift*(.55+noise(i)*.22))%(W+190)+W+190)%(W+190)-90;
+   const yy=410+(i%3)*24, bob=Math.sin(phase*2+i*2+p.stage)*3;
+   c.save();c.translate(x,yy+bob);c.scale(.8+noise(i+p.stage)*.6,.8+noise(i+p.stage)*.6);
+   if(['ocean','coral'].includes(biome)){
+     // Peixinhos alienígenas com cauda e olhos expressivos.
+     poly(c,[[-28,0],[-44,-13],[-43,14]],p.highlight);
+     c.fillStyle=i%2?'#ffb6d9':'#7ff8e6';c.beginPath();c.ellipse(0,0,27,15,0,0,PI*2);c.fill();
+     poly(c,[[-4,-8],[8,-26],[16,-8]],'#e5ecff95');
+     circle(c,16,-4,4,'#1e3357');circle(c,17,-5,1.5,'#fff');
+     for(let b=0;b<3;b++)circle(c,30+b*10,-25-b*7,2+b,'#defffc99');
+   }else if(['forest','desert','ice','lava','asteroids'].includes(biome)){
+     // Quadrúpedes saltitantes em diferentes cores; lagartos da lava e raposas do gelo.
+     const body=biome==='ice'?'#d3f4ff':biome==='lava'?'#ec7360':biome==='desert'?'#d7b878':biome==='forest'?'#a7ec9a':'#bb9ac9';
+     c.fillStyle=body;c.beginPath();c.ellipse(0,0,26,15,0,0,PI*2);c.fill();
+     for(const leg of [-16,13])line(c,leg,8,leg-4,20,body,6);
+     circle(c,20,-12,15,body);
+     for(const a of [-1,1])poly(c,[[20+a*8,-21],[20+a*12,-34],[20+a*3,-25]],body);
+     circle(c,25,-15,3,'#21365b');circle(c,26,-16,1.1,'#fff');
+     c.strokeStyle=body;c.lineWidth=6;c.beginPath();c.moveTo(-20,-5);c.quadraticCurveTo(-40,-24-bob,-40,-3);c.stroke();
+   }else if(['city','ruins'].includes(biome)){
+     // Pequenos robôs moradores do planeta.
+     c.fillStyle='#bcd6e8';c.beginPath();c.roundRect(-20,-17,40,30,7);c.fill();
+     circle(c,-9,-5,5,'#59ffdf');circle(c,10,-5,5,'#59ffdf');
+     line(c,0,-17,0,-28,'#e3e9f9',3);circle(c,0,-30,4,'#fff2c0');
+     line(c,-10,13,-11,23,'#7492b5',5);line(c,10,13,11,23,'#7492b5',5);
+   }else{
+     // Criaturinhas aéreas com quatro tentáculos e bioluminescência.
+     const rise=14*Math.sin(phase*1.2+i);
+     c.translate(0,-rise);
+     circle(c,0,0,20,i%2?p.highlight:p.ground);
+     for(const k of [-14,-5,5,14])line(c,k,8,k+4*Math.sin(phase+i+k),26,p.highlight,3);
+     circle(c,-7,-4,3,'#21345c');circle(c,7,-4,3,'#21345c');circle(c,0,3,2,'#fff');
+     circle(c,-13,-12,4,'#ffffff79');
+   }
+   c.restore();
+ }
+}
+
 export function drawPlanetEnvironment(c,game,time){
  const p=game.planet,shift=game.planetElapsed*55;
  const sky=c.createLinearGradient(0,0,0,H);sky.addColorStop(0,p.sky);sky.addColorStop(.5,p.ground);sky.addColorStop(1,p.sky);
@@ -42,6 +139,7 @@ export function drawPlanetEnvironment(c,game,time){
   c.strokeStyle=p.highlight+'9b';c.lineWidth=3;c.beginPath();
   for(let x=0;x<W;x+=16){const y=452+i*18+Math.sin(x*.016+i+time*.001)*9;x?c.lineTo(x,y):c.moveTo(x,y);}c.stroke();
  }
+ drawBiomeLife(c,p,shift,time);
  hill(c,515,24,shift*.008,p.sky+'e6',p.stage);
  c.textAlign='left';c.font='bold 17px system-ui';c.fillStyle='#faffff';c.shadowColor='#071330';c.shadowBlur=9;
  c.fillText(p.icon+' '+(game.save.planetNames[game.stage.number]||p.name)+' — '+p.landmark,28,100);c.shadowBlur=0;

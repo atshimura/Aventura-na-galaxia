@@ -67,6 +67,7 @@ export class SpaceAudio {
     if(kind==='pickup'){this.tone(740,now,.12,.13);this.tone(1108,now+.07,.24,.08,'sine');}
     else if(kind==='hit'){this.tone(145,now,.37,.14,'sawtooth');}
     else if(kind==='crate'){this.tone(523,now,.23,.10);this.tone(784,now+.12,.35,.09);}
+    else if(kind==='laser'){this.tone(860,now,.1,.055,'sawtooth',.015);this.tone(450,now+.055,.15,.04,'triangle',.015);}
     else if(kind==='dock'){this.tone(329.63,now,.48,.1);this.tone(392,now+.24,.55,.08);}
     else if(kind==='win'){[392,523.25,659.25,783.99,1046.5].forEach((f,i)=>this.tone(f,now+i*.18,.54,.11));}
   }

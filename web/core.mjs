@@ -1,6 +1,7 @@
 
 /** Aventura na Galáxia: regras independentes do navegador. */
 import {getPlanet,PLANET_SECONDS,planetVisible,chooseHazard,planetObstacleForBiome} from './world.mjs';
+import {rocketById,sanitizeRockets,DEFAULT_ROCKET,purchase,equip} from './rockets.mjs';
 const HAZARD_RADIUS={asteroid:29,satellite:35,ship:30,debris:24,comet:27,mine:28,plasma:31,drone:30,crystal:26,vortex:31};
 const WIDTH = 960;
 const HEIGHT = 540;
@@ -60,7 +61,7 @@ function stationPose(progress){
   return {x,y,portX:x-112,portY:y+11,scale:.78+.22*p};
 }
 const DOCKING_SECONDS=8;
-function freshSave(){return {wallet:0,best:0,completed:0,planetNames:{},exploredPlanets:{},sound:true,heartReserve:3,bestByStage:{},secretUnlocked:false};}
+function freshSave(){return {wallet:0,best:0,completed:0,planetNames:{},exploredPlanets:{},sound:true,heartReserve:3,bestByStage:{},secretUnlocked:false,bestInfinite:0,unlockedRockets:[DEFAULT_ROCKET],selectedRocket:DEFAULT_ROCKET};}
 function sanitizeSave(value){const base=freshSave();if(!value||typeof value!== 'object')return base;
   return {wallet:clamp(Math.floor(Number(value.wallet)||0),0,99999999),
     best:clamp(Math.floor(Number(value.best)||0),0,99999999),
@@ -68,38 +69,67 @@ function sanitizeSave(value){const base=freshSave();if(!value||typeof value!== '
     heartReserve:clamp(Math.floor(Number(value.heartReserve) || 3),1,3),
     bestByStage:Object.fromEntries(Object.entries(value.bestByStage||{}).filter(([key])=>/^(?:[1-9]|1[0-9]|20)$/.test(key)).map(([key,v])=>[key,clamp(Math.floor(Number(v)||0),0,99999999)])),
     secretUnlocked:value.secretUnlocked===true || Number(value.completed)>=TOTAL_STAGES,
+    bestInfinite:clamp(Math.floor(Number(value.bestInfinite)||0),0,99999999),
+    unlockedRockets:sanitizeRockets(value.unlockedRockets),
+    selectedRocket:sanitizeRockets(value.unlockedRockets).includes(value.selectedRocket)?value.selectedRocket:DEFAULT_ROCKET,
     planetNames:Object.fromEntries(Object.entries(value.planetNames&&typeof value.planetNames==='object'&&!Array.isArray(value.planetNames)?value.planetNames:{}).filter(([k,v])=>/^(?:[1-9]|1[0-9]|20)$/.test(k)&&typeof v==='string').map(([k,v])=>[k,v.trim().slice(0,32)]).filter(([,v])=>v)),
     exploredPlanets:Object.fromEntries(Object.entries(value.exploredPlanets&&typeof value.exploredPlanets==='object'&&!Array.isArray(value.exploredPlanets)?value.exploredPlanets:{}).filter(([k,v])=>/^(?:[1-9]|1[0-9]|20)$/.test(k)&&v===true)),
     sound:value.sound!==false};
 }
 class GameState {
-  constructor({difficulty='normal',rng=Math.random,save=freshSave(),stage=1}={}){
+  constructor({difficulty='normal',rng=Math.random,save=freshSave(),stage=1,mode='adventure'}={}){
     if(!SETTINGS[difficulty])throw new Error('Dificuldade inválida');
-    this.difficulty=difficulty;this.stage=getStage(stage);this.planet=getPlanet(this.stage.number);this.duration=stageDuration(this.stage.number);
+    if(!['adventure','infinite'].includes(mode))throw new Error('Modo inválido');
+    this.mode=mode;this.difficulty=difficulty;this.stage=getStage(stage);this.planet=getPlanet(this.stage.number);this.duration=stageDuration(this.stage.number);
     this.motion=obstacleMotion(this.stage.number);
     const base=SETTINGS[difficulty],increase=this.stage.number-1;
     this.config={speed:base.speed+increase*4,obstacleDelay:Math.max(.43,base.obstacleDelay-increase*.027),coinDelay:base.coinDelay};this.rng=rng;
-    this.save=sanitizeSave(save);this.state='menu';this.elapsed=0;this.distance=0;
+    this.save=sanitizeSave(save);this.rocketModel=rocketById(this.save.selectedRocket);this.state='menu';this.elapsed=0;this.distance=0;
     this.rocket={x:153,y:HEIGHT/2,r:21};this.target={x:153,y:HEIGHT/2};
     this.objects=[];this.score=0;this.hearts=3;this.invincible=0;this.shield=0;
     this.obstacleTimer=0;this.coinTimer=0;this.crateTimer=0;this.events=[];this.dockingProgress=0;this.dockStart=null;this.pauseFrom='playing';
     this.planetElapsed=0;this.planetDuration=PLANET_SECONDS;this.planetVisited=false;this.planetObstacleTimer=0;this.planetCoinTimer=0;
+    this.astronaut={x:165,y:402,r:14};this.footTarget={x:165,y:402};this.walkingDistance=0;
+    this.infiniteLevel=1;this.lasersFired=0;
   }
-  start(){this.state='playing';this.elapsed=0;this.distance=0;this.score=0;this.hearts=this.save.heartReserve;
+  start(){this.state='playing';this.elapsed=0;this.distance=0;this.score=0;this.hearts=this.mode==='infinite'?3:this.save.heartReserve;
     this.rocket={x:153,y:HEIGHT/2,r:21};this.target={x:153,y:HEIGHT/2};
-    this.objects=[];this.invincible=1.6;this.shield=0;this.obstacleTimer=1.5;this.coinTimer=0.65;
+    this.objects=[];this.invincible=1.6;this.shield=this.rocketModel.shield;this.obstacleTimer=1.5;this.coinTimer=0.65;
     this.crateTimer=11;this.events=[];this.dockingProgress=0;this.dockStart=null;this.pauseFrom='playing';this.planetElapsed=0;this.planetVisited=false;this.planetObstacleTimer=1.5;this.planetCoinTimer=.6;
+    this.astronaut={x:165,y:402,r:14};this.footTarget={x:165,y:402};this.walkingDistance=0;this.infiniteLevel=1;this.lasersFired=0;
   }
   setTarget(x,y){this.target.x=clamp(x,64,430);this.target.y=clamp(y,62,HEIGHT-60);}
   steer(direction,dt){
-    if(this.state!=='playing'&&this.state!=='exploring')return;
-    const seconds=clamp(dt,0,.05),speed=365;
+    if(!['playing','exploring','walking'].includes(this.state))return;
+    const seconds=clamp(dt,0,.05),speed=365*this.rocketModel.control;
+    if(this.state==='walking'){
+      this.footTarget.x=clamp(this.footTarget.x+direction.x*seconds*195,68,438);
+      this.footTarget.y=clamp(this.footTarget.y+direction.y*seconds*195,310,462);return;
+    }
     this.setTarget(this.target.x+direction.x*speed*seconds,this.target.y+direction.y*speed*seconds);
   }
-  stopSteering(){if(this.state==='playing'||this.state==='exploring')this.setTarget(this.rocket.x,this.rocket.y);}
-  pause(){if(this.state==='playing'||this.state==='exploring'||this.state==='docking'){this.pauseFrom=this.state;this.state='paused';}}
+  stopSteering(){
+    if(this.state==='walking'){this.footTarget={x:this.astronaut.x,y:this.astronaut.y};return;}
+    if(this.state==='playing'||this.state==='exploring')this.setTarget(this.rocket.x,this.rocket.y);
+  }
+  pause(){if(['playing','exploring','walking','docking'].includes(this.state)){this.pauseFrom=this.state;this.state='paused';}}
   resume(){if(this.state==='paused')this.state=this.pauseFrom;}
-  canExplorePlanet(){return this.state==='playing'&&!this.planetVisited&&planetVisible(this.elapsed,this.duration);}
+  canExplorePlanet(){return this.mode==='adventure'&&this.state==='playing'&&!this.planetVisited&&planetVisible(this.elapsed,this.duration);}
+  leaveRocket(){
+    if(this.state!=='exploring')return false;
+    this.state='walking';this.rocket={x:133,y:392,r:21};this.astronaut={x:169,y:389,r:14};
+    this.footTarget={x:this.astronaut.x,y:this.astronaut.y};this.objects=[];
+    this.planetObstacleTimer=1.3;this.planetCoinTimer=.5;
+    this.invincible=Math.max(1.2,this.invincible);
+    this.events.push('Astronauta desembarcou!');return true;
+  }
+  boardRocket(){
+    if(this.state!=='walking')return false;
+    this.state='exploring';this.objects=[];this.target={x:this.rocket.x,y:this.rocket.y};
+    this.invincible=Math.max(1.2,this.invincible);this.events.push('Astronauta embarcou!');return true;
+  }
+  buyRocket(id){return purchase(this.save,id);}
+  equipRocket(id){if(!equip(this.save,id))return false;this.rocketModel=rocketById(id);return true;}
   enterPlanet(){
     if(!this.canExplorePlanet())return false;
     this.state='exploring';this.planetElapsed=0;this.planetObstacleTimer=1.5;this.planetCoinTimer=.6;
@@ -120,7 +150,9 @@ class GameState {
   }
   spawnPlanetObstacle(){
     this.objects.push({kind:'planet-hazard',style:planetObstacleForBiome(this.planet.biome),
-      x:WIDTH+60,y:this.randomRange(125,385),r:this.randomRange(28,35),rot:this.randomRange(0,Math.PI*2)});
+      x:WIDTH+60,y:this.state==='walking'?this.randomRange(345,448):this.randomRange(125,385),
+      r:this.state==='walking'?this.randomRange(16,22):this.randomRange(28,35),
+      rot:this.randomRange(0,Math.PI*2)});
   }
   startDocking(){
     this.state='docking';this.dockingProgress=0;
@@ -143,10 +175,16 @@ class GameState {
     }
   }
   randomRange(min,max){return min+this.rng()*(max-min);}
-  spawnObstacle(){const kind=chooseHazard(this.stage.number,this.rng);
+  spawnObstacle(){const kind=chooseHazard(this.mode==='infinite'?this.infiniteLevel:this.stage.number,this.rng);
     const radius=kind==='asteroid'?this.randomRange(23,37):HAZARD_RADIUS[kind];
     this.objects.push({kind,x:WIDTH+60,y:this.randomRange(95,HEIGHT-95),r:radius,rot:this.randomRange(0,Math.PI*2),id:this.rng(),originY:0,phase:this.randomRange(0,Math.PI*2),age:0,drift:this.randomRange(-30,30)});
-    const o=this.objects[this.objects.length-1];o.originY=o.y;
+    const o=this.objects[this.objects.length-1];o.originY=o.y;o.shot=false;o.fireDelay=.5;
+  }
+  spawnLaser(source){
+    if(!source||source.kind!=='ship'||source.shot)return false;
+    source.shot=true;this.lasersFired++;
+    this.objects.push({kind:'laser',x:source.x-35,y:source.y,r:10,velocity:390+this.infiniteLevel*6,age:0});
+    this.events.push('Laser alienígena!');return true;
   }
   spawnCoin(kind='coin'){this.objects.push({kind,x:WIDTH+35,y:this.randomRange(72,HEIGHT-72),r:kind==='gem'?19:16,rot:0});}
   spawnCrate(){this.objects.push({kind:'crate',x:WIDTH+45,y:this.randomRange(90,HEIGHT-90),r:23,rot:0});}
@@ -154,8 +192,19 @@ class GameState {
     else if(chance<0.70){this.hearts=clamp(this.hearts+1,0,3);this.events.push('Coração recuperado!');}
     else{this.invincible=Math.max(this.invincible,5);this.events.push('Invencibilidade!');}}
   moveObjects(dt,exploring){
+    const newLasers=[];
     for(const item of this.objects){
-      item.x-=this.config.speed*(exploring?.83:1)*dt;item.age=(item.age||0)+dt;
+      if(item.kind==='laser')item.x-=(item.velocity||390)*dt;
+      else item.x-=this.config.speed*(exploring?.83:1)*dt;
+      item.age=(item.age||0)+dt;
+      if(!exploring&&item.kind==='ship'&&!item.shot&&this.stage.number>=3&&item.x<860&&item.x>this.rocket.x+230){
+        item.fireDelay=(item.fireDelay??.45)-dt;
+        if(item.fireDelay<=0){
+          item.shot=true;this.lasersFired++;
+          newLasers.push({kind:'laser',x:item.x-34,y:item.y,r:10,velocity:380+this.infiniteLevel*8,age:0});
+          this.events.push('Laser alienígena!');
+        }
+      }
       if(!exploring&&HAZARD_RADIUS[item.kind]){
         const phase=item.phase||0,y=item.originY??item.y;
         if(this.motion==='vertical')item.y=clamp(y+Math.sin(item.age*1.45+phase)*22,66,HEIGHT-66);
@@ -167,7 +216,8 @@ class GameState {
         if(item.kind==='vortex')item.y=clamp(y+Math.sin(item.age*1.3+phase)*58,64,HEIGHT-64);
       }
       if(item.kind==='coin'||item.kind==='gem')item.rot=(item.rot||0)+3.5*dt;
-      if(item.dead||!intersects(this.rocket,item))continue;
+      const player=this.state==='walking'?this.astronaut:this.rocket;
+      if(item.dead||!intersects(player,item))continue;
       if(item.kind==='coin'||item.kind==='gem'){
         const value=item.kind==='gem'?3:1;item.dead=true;this.score+=value;this.save.wallet+=value;
         this.events.push(item.kind==='gem'?'Cristal coletado!':'Moeda coletada!');
@@ -176,33 +226,55 @@ class GameState {
         item.dead=true;
         if(this.shield){this.shield=0;this.invincible=1;this.events.push('Escudo protegeu!');}
         else{this.hearts--;this.invincible=1.8;this.events.push('Colisão!');
-          if(this.hearts<=0){this.hearts=0;this.save.heartReserve=3;this.state='gameover';this.events.push('Fim de jogo');}}
+          if(this.hearts<=0){this.hearts=0;if(this.mode==='adventure')this.save.heartReserve=3;this.state='gameover';this.events.push('Fim de jogo');}}
       }
     }
-    this.objects=this.objects.filter(o=>!o.dead&&o.x>-90);
+    this.objects=this.objects.filter(o=>!o.dead&&o.x>-90).concat(newLasers);
     if(this.score>this.save.best)this.save.best=this.score;
+    if(this.mode==='infinite'&&this.score>this.save.bestInfinite)this.save.bestInfinite=this.score;
   }
   update(delta){
-    if(!['playing','exploring','docking'].includes(this.state))return;
+    if(!['playing','exploring','walking','docking'].includes(this.state))return;
     const dt=clamp(delta,0,.05);this.events=[];
     if(this.state==='docking'){this.updateDocking(dt);return;}
     const k=Math.min(1,12*dt);
-    this.rocket.x+=(this.target.x-this.rocket.x)*k;
-    this.rocket.y+=(this.target.y-this.rocket.y)*k;
+    if(this.state==='walking'){
+      this.astronaut.x+=(this.footTarget.x-this.astronaut.x)*k;
+      this.astronaut.y+=(this.footTarget.y-this.astronaut.y)*k;
+      this.walkingDistance+=dt;
+    }else{
+      this.rocket.x+=(this.target.x-this.rocket.x)*k;
+      this.rocket.y+=(this.target.y-this.rocket.y)*k;
+    }
     this.invincible=Math.max(0,this.invincible-dt);
-    if(this.state==='exploring'){
+    if(this.state==='exploring'||this.state==='walking'){
       this.planetElapsed+=dt;this.distance+=this.config.speed*dt*.4;
       this.planetObstacleTimer-=dt;this.planetCoinTimer-=dt;
       if(this.planetObstacleTimer<=0){this.spawnPlanetObstacle();this.planetObstacleTimer+=1.45;}
-      if(this.planetCoinTimer<=0){this.spawnCoin('gem');this.planetCoinTimer+=1.05;}
+      if(this.planetCoinTimer<=0){
+        this.spawnCoin('gem');
+        if(this.state==='walking'){
+          const gem=this.objects[this.objects.length-1];
+          if(gem?.kind==='gem')gem.y=this.randomRange(335,442);
+        }
+        this.planetCoinTimer+=1.05;
+      }
       this.moveObjects(dt,true);
-      if(this.state==='exploring'&&this.planetElapsed>=this.planetDuration){
+      if(['exploring','walking'].includes(this.state)&&this.planetElapsed>=this.planetDuration){
         this.planetElapsed=this.planetDuration;this.finishPlanet();
       }
       return;
     }
     this.elapsed+=dt;this.distance+=this.config.speed*dt;
-    if(this.elapsed>=this.duration-DOCKING_SECONDS){
+    if(this.mode==='infinite'){
+      this.infiniteLevel=Math.min(TOTAL_STAGES,Math.floor(this.elapsed/30)+1);
+      this.stage=getStage(this.infiniteLevel);this.planet=getPlanet(this.infiniteLevel);
+      this.motion=obstacleMotion(this.infiniteLevel);
+      const base=SETTINGS[this.difficulty];
+      this.config.speed=base.speed+Math.min(220,Math.floor(this.elapsed/15)*7);
+      this.config.obstacleDelay=Math.max(.41,base.obstacleDelay-Math.floor(this.elapsed/25)*.045);
+    }
+    if(this.mode==='adventure'&&this.elapsed>=this.duration-DOCKING_SECONDS){
       this.elapsed=this.duration-DOCKING_SECONDS;this.startDocking();return;
     }
     this.obstacleTimer-=dt;this.coinTimer-=dt;this.crateTimer-=dt;
@@ -213,7 +285,7 @@ class GameState {
   }
   repair(){if(this.state!=='victory'||this.hearts>=3||this.save.wallet<REPAIR_COST)return false;
     this.hearts++;this.save.heartReserve=this.hearts;this.save.wallet-=REPAIR_COST;this.events.push('Foguete consertado!');return true;}
-  snapshot(){return {state:this.state,elapsed:this.elapsed,planetElapsed:this.planetElapsed,score:this.score,hearts:this.hearts,wallet:this.save.wallet,best:this.save.best,completed:this.save.completed,stage:this.stage.number,duration:this.duration,shield:this.shield};}
+  snapshot(){return {mode:this.mode,selectedRocket:this.rocketModel.id,bestInfinite:this.save.bestInfinite,state:this.state,elapsed:this.elapsed,planetElapsed:this.planetElapsed,score:this.score,hearts:this.hearts,wallet:this.save.wallet,best:this.save.best,completed:this.save.completed,stage:this.stage.number,duration:this.duration,shield:this.shield};}
 }
 
 

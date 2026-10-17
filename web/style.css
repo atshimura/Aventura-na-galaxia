@@ -23,3 +23,18 @@
 #planet-input{width:min(400px,65vw);border:2px solid #86e8ff;border-radius:13px;color:#fff;background:#0b1a3de8;padding:12px;font:700 17px system-ui;text-align:center}
 #planet-input:focus-visible{outline:3px solid #f4d389}
 @media(max-height:340px){.explore-btn{padding:7px 12px;bottom:9px}#planet-input{padding:6px;font-size:13px}}
+
+/* V0.5: garagem, personagem fora do foguete e botões de exploração. */
+.mode-actions{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+.mode-actions>button{font-size:clamp(10px,1.6vw,14px);padding:8px 13px}
+.walk-btn{top:auto!important;bottom:calc(max(17px,env(safe-area-inset-bottom)) + 8px);left:50%;transform:translateX(-50%);right:auto;z-index:4;background:linear-gradient(100deg,#16467cdd,#1c866fdf)}
+.shop-screen{gap:9px;padding:9px 22px}
+.rocket-list{display:grid;grid-template-columns:repeat(2,minmax(170px,1fr));gap:7px;width:min(720px,94vw);overflow-y:auto;max-height:min(62vh,330px);padding:4px}
+.rocket-entry{display:flex;align-items:center;justify-content:space-between;gap:9px;text-align:left;border:1px solid #8ad8ff55;background:#061c3dbb;border-radius:12px;padding:9px}
+.rocket-entry .rocket-title{font-size:13px;font-weight:850;color:#e4f5ff}
+.rocket-entry .rocket-sub{font-size:11px;color:#c3d6ec;line-height:1.25}
+.rocket-entry .rocket-icon{height:40px;width:55px;min-width:55px;display:flex;align-items:center;justify-content:center;font-size:26px;border-radius:14px;background:linear-gradient(135deg,var(--rocket-color),#192e64)}
+.rocket-entry button{font-size:11px;padding:6px 8px;white-space:nowrap}
+.rocket-entry button:disabled{opacity:.65}
+@media(max-height:450px){.shop-screen h2{font-size:19px}.rocket-list{max-height:55vh}.rocket-entry{padding:5px}.rocket-entry .rocket-icon{height:30px;width:36px;min-width:36px;font-size:22px}.rocket-entry .rocket-sub{font-size:10px}}
+@media(max-width:480px){.rocket-list{grid-template-columns:1fr}.mode-actions>button{font-size:11px}}
