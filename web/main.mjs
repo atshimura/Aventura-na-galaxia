@@ -1,5 +1,7 @@
 import {GameState, WIDTH, HEIGHT, STAGE_SECONDS, REPAIR_COST, TOTAL_STAGES, STAGES, canPlayStage, normalizePointer, joystickVector, stationPose, sanitizeSave} from './core.mjs';
-import {SpaceAudio} from './music.mjs';
+import {SpaceAudio} from './music-v2.mjs';
+import {drawPlatformPlanet} from './platformer-render.mjs';
+import {FLIGHT_PAD_X,canBoard} from './platformer.mjs';
 import {ROCKETS,rocketById,sanitizeRockets} from './rockets.mjs';
 import {getPlanet} from './world.mjs';
 import {drawSpaceEnvironment,drawPlanetEnvironment,drawPlanetApproach,drawHazard,drawGem} from './world-render.mjs';
@@ -36,7 +38,7 @@ function updateStick(e){
   knob.style.transform=`translate(-50%,-50%) translate(${(x*scale).toFixed(1)}px,${(y*scale).toFixed(1)}px)`;
 }
 stick.addEventListener('pointerdown',e=>{
-  if(!['playing','exploring','walking'].includes(game.state)||steeringPointer!==null)return;
+  if(!game.state==='playing'||steeringPointer!==null)return;
   e.preventDefault();steeringPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e);
 });
 stick.addEventListener('pointermove',e=>{if(e.pointerId===steeringPointer){e.preventDefault();updateStick(e);}});
@@ -48,10 +50,11 @@ function panels(active){
   displayMode=active;
   for(const id of ['menu','pause-menu','result','planet-name','shop'])$(id).classList.toggle('hidden',active!==id);
   $('hud').classList.toggle('hidden',active!=='playing');
-  stick.classList.toggle('hidden',active!=='playing'||!['playing','exploring','walking'].includes(game.state));
+  stick.classList.toggle('hidden',active!=='playing'||!game.state==='playing');
   $('explore-btn').classList.toggle('hidden',active!=='playing'||!game.canExplorePlanet());
-  $('leave-rocket').classList.toggle('hidden',active!=='playing'||game.state!=='exploring');
-  $('board-rocket').classList.toggle('hidden',active!=='playing'||game.state!=='walking');
+  $('leave-rocket').classList.toggle('hidden',active!=='playing'||game.state!=='landed');
+  $('board-rocket').classList.toggle('hidden',active!=='playing'||game.state!=='walking'||!canBoard(game.astronaut));
+  $('jump-btn').classList.toggle('hidden',active!=='playing'||game.state!=='walking');
 }
 function menu(){
  audio.pause();resetSteering();game.state='menu';panels('menu');configureStageSelect();
@@ -100,17 +103,19 @@ function updateHud(){
  $('score').textContent=`⭐ ${game.score} ${game.score===1?'PONTO':'PONTOS'}`;
  $('wallet').textContent=`🪙 ${game.save.wallet}`;
  $('shield').hidden=!game.shield;
- const percent=game.mode==='infinite'?(game.elapsed%30)/30*100:(['exploring','walking'].includes(game.state)?game.planetElapsed/game.planetDuration:game.elapsed/game.duration)*100;
+ const groundStates=['landing','landed','disembarking','walking','boarding','takeoff'];
+ const percent=groundStates.includes(game.state)?100:game.mode==='infinite'?(game.elapsed%30)/30*100:game.elapsed/game.duration*100;
  $('progress-fill').style.width=`${Math.min(100,percent).toFixed(1)}%`;
- $('stage-hud').textContent=['exploring','walking'].includes(game.state)?`${game.planet.icon} ${game.planet.name}`:game.mode==='infinite'?`♾️ ONDA ${game.infiniteLevel}`:`${game.stage.icon} FASE ${game.stage.number}`;
+ $('stage-hud').textContent=groundStates.includes(game.state)?`${game.planet.icon} ${game.planet.name}`:game.mode==='infinite'?`♾️ ONDA ${game.infiniteLevel}`:`${game.stage.icon} FASE ${game.stage.number}`;
  $('explore-btn').classList.toggle('hidden',!game.canExplorePlanet());
- $('leave-rocket').classList.toggle('hidden',game.state!=='exploring');
- $('board-rocket').classList.toggle('hidden',game.state!=='walking');
+ $('leave-rocket').classList.toggle('hidden',game.state!=='landed');
+ $('board-rocket').classList.toggle('hidden',game.state!=='walking'||!canBoard(game.astronaut));
+ $('jump-btn').classList.toggle('hidden',game.state!=='walking');
 }
 function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');toastTimeout=1.4;}
-$('explore-btn').addEventListener('click',()=>{if(game.enterPlanet()){resetSteering();panels('playing');audio.sound('dock');toast('🌍 Explorando o planeta!');updateHud();}});
-$('leave-rocket').addEventListener('click',()=>{if(game.leaveRocket()){resetSteering();panels('playing');toast('👩‍🚀 Caminhe e descubra criaturas!');}});
-$('board-rocket').addEventListener('click',()=>{if(game.boardRocket()){resetSteering();panels('playing');toast('🚀 De volta ao foguete!');}});
+$('explore-btn').addEventListener('click',()=>{if(game.enterPlanet()){resetSteering();panels('playing');audio.sound('dock');toast('🌍 Aproximando para pousar no planeta!');updateHud();}});
+$('leave-rocket').addEventListener('click',()=>{if(game.leaveRocket()){resetSteering();panels('playing');toast('👩‍🚀 Escotilha abrindo!');}});
+$('board-rocket').addEventListener('click',()=>{if(game.boardRocket()){resetSteering();panels('playing');toast('🚀 Preparando decolagem!');}});
 $('open-shop').addEventListener('click',showShop);$('shop-close').addEventListener('click',menu);
 $('rocket-list').addEventListener('click',e=>{
  const button=e.target.closest('[data-rocket]');if(!button)return;
@@ -130,8 +135,7 @@ $('repair').addEventListener('click',()=>{if(game.repair()){persist();$('result-
 $('sound').addEventListener('click',()=>{game.save.sound=!game.save.sound;persist();audio.setEnabled(game.save.sound);menu();});
 function updatePointer(e){
  const p=normalizePointer(e.clientX,e.clientY,canvas.getBoundingClientRect());
- if(game.state==='walking'){game.footTarget.x=Math.max(68,Math.min(438,p.x));game.footTarget.y=Math.max(310,Math.min(462,p.y));}
- else game.setTarget(p.x,p.y);
+ if(game.state==='playing')game.setTarget(p.x,p.y);
 }
 canvas.addEventListener('pointerdown',e=>{if(!['playing','exploring','walking'].includes(game.state))return;canvas.setPointerCapture(e.pointerId);updatePointer(e);});
 canvas.addEventListener('pointermove',e=>{if(['playing','exploring','walking'].includes(game.state)&&(e.buttons||e.pointerType==='touch'))updatePointer(e);});
@@ -263,33 +267,68 @@ function astronaut(x,y,t){
  ctx.fillStyle='#65f8dd';ctx.fillRect(-4,0,8,5);ctx.restore();
 }
 function render(t){
- const active=['playing','paused','docking','gameover','victory','exploring','walking','naming'].includes(game.state);
+ const planetStates=['landing','landed','disembarking','walking','boarding','takeoff'];
+ const planet=planetStates.includes(game.state)||(game.state==='paused'&&planetStates.includes(game.pauseFrom))||game.state==='naming';
+ const active=['playing','paused','docking','gameover','victory','exploring','naming',...planetStates].includes(game.state);
  const shift=active?game.distance:t*.04;
- if(['exploring','walking','naming'].includes(game.state)||(game.state==='paused'&&['exploring','walking'].includes(game.pauseFrom)))drawPlanetEnvironment(ctx,game,t);else background(shift);
+ if(planet){
+   drawPlatformPlanet(ctx,game,t);
+   if(['walking','disembarking','boarding'].includes(game.state)||
+      (game.state==='paused'&&['walking','disembarking','boarding'].includes(game.pauseFrom))){
+     const phase=game.state,progress=game.transitionProgress||0;
+     const x=(phase==='disembarking'?FLIGHT_PAD_X+9+35*progress:phase==='boarding'?FLIGHT_PAD_X+42-35*progress:game.astronaut.x)-game.cameraX;
+     const y=game.astronaut.y;
+     drawAstronautPlatform(x,y,t,game.astronaut);
+   }
+   return;
+ }
+ if(game.state==='exploring')drawPlanetEnvironment(ctx,game,t);else background(shift);
  if(active){
    const fade=game.state==='docking'?Math.max(0,1-game.dockingProgress*2):1;
    ctx.save();ctx.globalAlpha=fade;
-   for(const o of game.objects){if(o.kind==='asteroid')asteroid(o);else if(o.kind==='satellite')satellite(o);else if(o.kind==='ship')ship(o);else if(o.kind==='coin')coin(o,t);else if(o.kind==='crate')crate(o,t);else if(o.kind==='gem')drawGem(ctx,o,t);else if(o.kind==='laser')laserBolt(o,t);else drawHazard(ctx,o,t);}
+   for(const o of game.objects){
+    if(o.kind==='asteroid')asteroid(o);else if(o.kind==='satellite')satellite(o);
+    else if(o.kind==='ship')ship(o);else if(o.kind==='coin')coin(o,t);
+    else if(o.kind==='crate')crate(o,t);else if(o.kind==='gem')drawGem(ctx,o,t);
+    else if(o.kind==='laser')laserBolt(o,t);else drawHazard(ctx,o,t);
+   }
    ctx.restore();
    if(game.state==='playing')drawPlanetApproach(ctx,game,t);
    if(game.dockingProgress>0||game.state==='victory')station(t);
    const docked=game.state==='victory';
-   if(game.state==='walking'||(game.state==='paused'&&game.pauseFrom==='walking')){
-     drawRocket(133,392,t,0,false,true);astronaut(game.astronaut.x,game.astronaut.y,t);
-   }else drawRocket(game.rocket.x,game.rocket.y+(docked?0:Math.sin(t/155)*2),t,docked?0:game.invincible,game.shield,docked);
-   if(game.state==='playing'&&game.invincible>1.4){ctx.fillStyle='#fa537716';ctx.fillRect(0,0,WIDTH,HEIGHT);}
+   drawRocket(game.rocket.x,game.rocket.y+(docked?0:Math.sin(t/155)*2),t,docked?0:game.invincible,game.shield,docked);
  }else drawRocket(190,330+Math.sin(t/400)*12,t);
+}
+function drawAstronautPlatform(x,y,t,person){
+ ctx.save();ctx.translate(x,y);ctx.scale(person?.facing||1,1);
+ const walking=person?.onGround&&Math.abs(person?.vx||0)>6;
+ const gait=walking?Math.sin(person.step*1.9):0;
+ // Corpo e capacete acompanham a corrida; pernas alternam de forma natural.
+ ctx.translate(0,walking?Math.abs(gait)*-2:Math.sin(t/410)*1);
+ ctx.strokeStyle='#253f70';ctx.lineWidth=5;ctx.lineCap='round';
+ for(const side of [-1,1]){
+   ctx.beginPath();ctx.moveTo(side*7,6);ctx.lineTo(side*7+gait*8*side,19-Math.max(0,gait*side)*6);ctx.stroke();
+ }
+ ctx.fillStyle='#e6f2fe';ctx.strokeStyle='#547baa';ctx.lineWidth=2;
+ ctx.beginPath();ctx.roundRect(-11,-11,22,24,6);ctx.fill();ctx.stroke();
+ ctx.strokeStyle='#d2e7fb';ctx.lineWidth=4;
+ ctx.beginPath();ctx.moveTo(-10,-3);ctx.lineTo(-17,-1+gait*5);ctx.moveTo(10,-3);ctx.lineTo(17,-1-gait*5);ctx.stroke();
+ ctx.fillStyle='#f6fbff';ctx.beginPath();ctx.arc(0,-21,16,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#28609b';ctx.beginPath();ctx.ellipse(0,-21,12,9,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#8ce9ff';ctx.beginPath();ctx.ellipse(-3,-24,4,2,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#58e9c7';ctx.fillRect(-4,2,8,5);
+ ctx.restore();
 }
 function loop(now){
  const dt=framePrevious?Math.min(.05,(now-framePrevious)/1000):0;framePrevious=now;
- if(game.state==='playing'||game.state==='exploring'){
+ if(game.state==='playing'||game.state==='walking'){
    const keyboard={x:Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a')),
      y:Number(keys.has('ArrowDown')||keys.has('s'))-Number(keys.has('ArrowUp')||keys.has('w'))};
    const input=steeringPointer!==null?steering:keyboard;
    const mag=Math.hypot(input.x,input.y);
    if(mag>.0001)game.steer({x:input.x/Math.max(1,mag),y:input.y/Math.max(1,mag)},dt);
  }
- if(['playing','exploring','walking','docking'].includes(game.state)){
+ if(['playing','exploring','landing','landed','disembarking','walking','boarding','takeoff','docking'].includes(game.state)){
    const previous=game.state;game.update(dt);let dirty=false;
    for(const event of game.events){
      if(event==='Moeda coletada!'||event==='Cristal coletado!'){dirty=true;audio.sound('pickup');}
@@ -304,7 +343,8 @@ function loop(now){
    updateHud();
    if(game.state==='gameover'||game.state==='victory'){if(game.state==='victory')selectedStage=Math.min(TOTAL_STAGES,game.stage.number+1);resetSteering();audio.pause();result();}
  }
- audio.tick(['playing','exploring','walking','docking'].includes(game.state));
+ audio.setScene(['landing','landed','disembarking','boarding','takeoff'].includes(game.state)?'landing':game.state==='walking'?'planet':'flight');
+ audio.tick(['playing','landing','landed','disembarking','walking','boarding','takeoff','docking'].includes(game.state));
  if(toastTimeout>0){toastTimeout-=dt;if(toastTimeout<=0)$('toast').classList.remove('visible');}
  render(now);requestAnimationFrame(loop);
 }
