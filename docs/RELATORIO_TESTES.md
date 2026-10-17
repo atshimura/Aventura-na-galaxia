@@ -66,3 +66,16 @@ Nenhuma validação de navegador externo foi contabilizada nesta execução porq
 - Rota horizontal única com os vinte planetas, ilustrações únicas, névoa para destinos bloqueados, ficha ilustrada com informações e JOGAR se liberado, registros distintos de fase concluída (✓) e planeta explorado (👣), foco na fase atual (🚀).
 - **Limitação:** a inspeção gráfica interativa no navegador não foi possível porque a navegação local do navegador automatizado foi bloqueada pelo ambiente. O teste de emulador confirma instalação e abertura; os fluxos do mapa foram verificados na simulação automatizada de eventos de interface, **não em uma sessão completa de toque humano no dispositivo**. Conferir legibilidade e gesto de rolagem em aparelhos reais.
 - Artefato compilado na GitHub Actions a partir da branch `main`, exportado como `Aventura-na-Galaxia-v0.6.3.apk`. O APK é debug para testes.
+
+## v0.6.4 — Caixinha de surpresas com seis prêmios úteis (17/10/2026)
+
+- **PR #9 integrado na `main`:** https://github.com/atshimura/Aventura-na-galaxia/pull/9
+- **Commit de integração:** `dc2248de87364020e35faa7d986d07b8f30527ef`
+- **CI final na `main`:** https://github.com/atshimura/Aventura-na-galaxia/actions/runs/39064646331 — **154 testes aprovados, compilação Android e instalação/abertura no emulador aprovadas**.
+- Android debug de teste: `versionCode 10`, `versionName 0.6.4`. APK distribuído como `Aventura-na-Galaxia-v0.6.4.apk`.
+- Mantidos escudo e coração recuperado. **Retirada a invencibilidade de cinco segundos apenas do sorteio de caixas**; proteção breve após dano permanece para evitar impactos consecutivos injustos.
+- Novos prêmios: **ímã de moedas** por 8 segundos, **tesouro espacial** de 8 a 15 moedas, **congelamento espacial** por 6 segundos com perigos (incluindo projéteis) a 30% da velocidade original e **raio de limpeza** instantâneo que remove perigos próximos e à frente, sem destruir moedas, cristais e caixas.
+- Probabilidades-base: escudo 20%, coração 18%, ímã 19%, tesouro 20%, congelamento 13%, raio 10%. Escolha reponderada apenas entre prêmios úteis: não sortear escudo já ativo, coração com vidas cheias ou raio sem perigos ao alcance; ímã/congelamento renovam sua duração sem acumular.
+- HUD com indicadores para poderes temporários, animações de energia e reaproveitamento do som já existente para caixas. Prêmios de tesouro atualizam moeda na carteira e pontuação/recorde.
+- **Cobertura adicional:** 18 testes específicos com casos de pesos e distribuição proporcional, renovação dos poderes, preservação de progressos, magnetismo de moedas próximas, velocidades durante congelamento, alvos do raio, colisões simultâneas e integridade do conteúdo Android.
+- **Limitação:** o teste no emulador verifica instalação e abertura; o balanço dos prêmios, tempo percebido de congelamento e elementos visuais do HUD ainda devem ser experimentados no celular real. Não foi realizada uma sessão humana completa tocando todos os prêmios no aparelho.

@@ -116,3 +116,11 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Fichas ilustradas, bloqueio de informações de destinos futuros, botão JOGAR somente quando autorizado, fechar com retorno à mesma posição e símbolos independentes de fase concluída / planeta explorado.
 - Animações decorativas discretas com respeito à preferência do sistema por movimento reduzido.
 - Aplicação mantém a estrutura de dados do salvamento original. Testes automatizados adicionados à suite.
+
+## Entrega v0.6.4 — Caixas-surpresa expandidas (IMPLEMENTADO)
+- Conforme aprovação do usuário, foram mantidos os prêmios **escudo** e **coração**, retirada a **invencibilidade longa** do sorteio e incluídos **ímã de moedas, tesouro espacial, congelamento espacial e raio de limpeza**.
+- Os seis prêmios usam probabilidades de referência de 20%, 18%, 19%, 20%, 13% e 10%, respectivamente, redistribuídas proporcionalmente apenas entre opções úteis naquele momento.
+- Escudo não aparece se a nave já o possui, coração só aparece se houver vidas a restaurar e raio de limpeza só aparece havendo perigos atingíveis. Ímã/congelamento reiniciam seus temporizadores quando sorteados novamente, sem acumular. Tesouro dá 8–15 moedas.
+- Efeitos e duração: ímã 8 segundos, congelamento 6 segundos com redução de velocidade dos perigos de 70%, raio instantâneo. Indicadores e sinais visuais no HUD foram implementados.
+- Mantida a imunidade breve após danos para que colisões consecutivas não provoquem perda injusta de vidas.
+- Integração: PR #9 e teste do GitHub Actions na `main` com 154 testes, build e smoke Android aprovados.
