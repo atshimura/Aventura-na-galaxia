@@ -67,3 +67,13 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Reaproveitar progresso já salvo por fase, pontuações e nomes dos planetas. Não presumir critérios adicionais de pontuação/estrelas antes da definição.
 - Uma proposta é abrir o mapa a partir de um botão próprio na tela principal, mantendo o seletor de fase atual, e permitir selecionar pelo mapa fases já liberadas.
 - A apresentação, posição do acesso ao mapa, interação e demais detalhes precisam de decisão do usuário. Não há implementação autorizada.
+
+
+### Decisões adicionais confirmadas — Mapa da Galáxia (design, NÃO implementar ainda)
+- O mapa será uma **tela adicional**, acessível a partir do menu principal. **Manter o seletor de fases atual**, sem substituí-lo.
+- O mapa será **horizontal**, com navegação por deslocamento lateral, seguindo uma viagem espacial da esquerda para a direita.
+- **Todos os 20 planetas estarão em um único mapa contínuo**, não dividido em regiões ou telas separadas.
+- A rota será **irregular, sinuosa e orgânica**, com curvas, alturas e espaçamentos variados; **evitar grades, linhas retas e organização simétrica**.
+- Cada fase será representada por **uma ilustração própria do planeta correspondente**, aproveitando as identidades visuais dos 20 planetas já existentes; não usar círculos genéricos numerados como principal representação.
+- Os elementos de progresso (concluída, atual/disponível, bloqueada, explorada) devem ser definidos visualmente sem confundir a conclusão espacial da fase com a exploração de seu planeta.
+- Ainda falta decidir a interação ao tocar um planeta e detalhes finos do desenho. **Nenhuma implementação autorizada.**
