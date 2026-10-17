@@ -53,30 +53,30 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Manter exploração livre, checkpoints, garagem e progressão de voos.
 
 
-## Decisão confirmada — fundo dinâmico da tela principal (pendente de implementação)
+## Decisão implementada — fundo dinâmico da tela principal (v0.6.3)
 - **Usar o seletor de fases que já existe no menu principal; não criar outro seletor ou reestruturar o menu.**
 - Ao selecionar uma fase existente, a imagem de fundo da própria tela principal deve mudar para mostrar o cenário correspondente ao planeta daquela fase. Exemplos: fase 1, Auréola; fase 3, Safira; fase 4, Florália.
 - A prévia usa, preferencialmente, os mesmos cenários dos 20 planetas que já existem no jogo, para representar fielmente o que o jogador encontrará.
 - Trocar o fundo assim que a seleção mudar, com transição visual discreta, preservando contraste e legibilidade dos botões e textos.
 - Ao retornar ao menu, o fundo deve refletir a fase selecionada naquele momento.
-- **Apenas decisão de produto registrada; implementação expressamente adiada até nova autorização do usuário.**
+- **Implementada na v0.6.3 após autorização expressa do usuário.**
 
-## Mapa de progresso das fases — decisões de design em andamento (não implementar ainda)
+## Mapa de progresso das fases — decisões consolidadas e implementadas (v0.6.3)
 - Analisar um mapa estelar com 20 destinos, ligados por rota visual, indicando fase concluída, fase atual/desbloqueada e destinos ainda bloqueados.
 - Manter conceitualmente separados os estados `fase concluída` e `planeta explorado`, porque o jogo registra ambos independentemente.
 - Reaproveitar progresso já salvo por fase, pontuações e nomes dos planetas. Não presumir critérios adicionais de pontuação/estrelas antes da definição.
 - Uma proposta é abrir o mapa a partir de um botão próprio na tela principal, mantendo o seletor de fase atual, e permitir selecionar pelo mapa fases já liberadas.
-- A apresentação, posição do acesso ao mapa, interação e demais detalhes precisam de decisão do usuário. Não há implementação autorizada.
+- A apresentação, o acesso adicional no menu e a interação foram definidos e implementados na v0.6.3, preservando o seletor de fases existente.
 
 
-### Decisões adicionais confirmadas — Mapa da Galáxia (design, NÃO implementar ainda)
+### Decisões confirmadas — Mapa da Galáxia (implementadas na v0.6.3)
 - O mapa será uma **tela adicional**, acessível a partir do menu principal. **Manter o seletor de fases atual**, sem substituí-lo.
 - O mapa será **horizontal**, com navegação por deslocamento lateral, seguindo uma viagem espacial da esquerda para a direita.
 - **Todos os 20 planetas estarão em um único mapa contínuo**, não dividido em regiões ou telas separadas.
 - A rota será **irregular, sinuosa e orgânica**, com curvas, alturas e espaçamentos variados; **evitar grades, linhas retas e organização simétrica**.
 - Cada fase será representada por **uma ilustração própria do planeta correspondente**, aproveitando as identidades visuais dos 20 planetas já existentes; não usar círculos genéricos numerados como principal representação.
 - Os elementos de progresso (concluída, atual/disponível, bloqueada, explorada) devem ser definidos visualmente sem confundir a conclusão espacial da fase com a exploração de seu planeta.
-- A interação ao tocar um planeta já foi definida em seção posterior; detalhes finos de desenho e navegação continuam em discussão. **Nenhuma implementação autorizada.**
+- A interação ao tocar um planeta e a navegação foram definidas e implementadas conforme seções posteriores.
 
 
 ### Decisão confirmada — interação com os planetas no mapa
@@ -84,7 +84,7 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Para planetas **desbloqueados**, a ficha apresentará **ilustração ampliada própria do planeta**, nome, número da fase, **melhor pontuação**, indicador de fase concluída e indicador separado de **planeta já explorado**.
 - Para planetas desbloqueados haverá botão **JOGAR**, que inicia a fase escolhida a partir da ficha.
 - O tratamento de planetas bloqueados foi definido em seção posterior; a apresentação visual detalhada da rota ainda será refinada.
-- **Somente especificação de produto registrada. Não implementar o mapa ou alterar o aplicativo até nova autorização expressa.**
+- **Implementada na v0.6.3, após autorização expressa do usuário.**
 
 
 ### Decisão confirmada — caminho misterioso e névoa espacial no mapa
@@ -93,14 +93,14 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - O jogador poderá tocar em cada planeta para abrir uma ficha ilustrada; fases desbloqueadas oferecem a ação JOGAR. Para planetas bloqueados, valem as regras de silhueta e informações limitadas registradas adiante.
 - **Opção A confirmada:** a névoa espacial que encobre um planeta se dissipa quando a fase correspondente é **desbloqueada**, mesmo que o astronauta ainda não tenha pousado ou explorado esse planeta. O planeta desbloqueado aparece claramente ilustrado. As fases ainda bloqueadas permanecem parcial e visualmente encobertas.
 - A exploração do planeta **não é requisito** para dissipar a névoa e continua sendo indicada separadamente na ficha/mapa.
-- **Somente registro da decisão de design; não implementar a funcionalidade ou alterar o código do aplicativo.**
+- **Implementada na v0.6.3, após autorização expressa do usuário.**
 
 ### Decisão confirmada — ficha de planeta bloqueado: preservar o mistério
 - **Opção B confirmada pelo usuário:** tocar em um planeta ainda bloqueado abre sua ficha com **número da fase, silhueta parcialmente encoberta do planeta e informação sobre como desbloquear**.
 - O **nome do planeta e sua ilustração completa permanecem ocultos** até o desbloqueio da fase. A ficha não oferece o botão **JOGAR** enquanto a fase estiver bloqueada.
 - Assim que a fase é desbloqueada, desaparece a névoa que a cobre no mapa, e a ficha passa a exibir nome e ilustração completos, informações de progresso e botão **JOGAR**, conforme a regra já confirmada.
 - **Atenção:** isso não altera a regra de que a exploração do planeta e a conclusão da fase são estados distintos.
-- **Somente definição de projeto; não implementar até autorização expressa.**
+- **Implementada na v0.6.3, após autorização expressa do usuário.**
 
 ### Decisão confirmada — posicionamento inicial do Mapa da Galáxia
 - **Opção A confirmada:** ao abrir o mapa, a visualização deverá aparecer **centralizada na fase mais avançada que estiver desbloqueada**, com o foguete do jogador próximo ao respectivo planeta.
@@ -108,7 +108,7 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Na ausência de progresso salvo, iniciar junto ao primeiro planeta, Auréola.
 - Respeitar os limites do mapa nas extremidades, sem tentar centralizar fora da área navegável.
 - **Estado de projeto:** falta apenas consolidar detalhes de apresentação do progresso (indicação visual separada para fase concluída versus planeta explorado) e comportamentos de interface; definir preferencialmente com padrões de projeto simples, sem novas rodadas extensas de perguntas.
-- **A implementação continua expressamente não autorizada até confirmação do usuário. Esta mudança altera apenas a documentação.**
+- **Implementada na v0.6.3, após autorização expressa do usuário; esta decisão passou do planejamento ao aplicativo.**
 
 ## Entrega v0.6.3 — Menu com fundo dinâmico e Mapa da Galáxia (IMPLEMENTADO)
 - Implementação da prévia fiel ao cenário do planeta selecionado **no seletor já existente**, com transição suave e preservação do conteúdo do menu.

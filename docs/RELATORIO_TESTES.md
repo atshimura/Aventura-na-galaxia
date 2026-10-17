@@ -54,3 +54,15 @@ Nenhuma validação de navegador externo foi contabilizada nesta execução porq
 - Primeira fase sem precipícios, armadilhas ou criaturas hostis; primeiro obstáculo na fase 2, primeiro buraco na fase 3, buracos adicionais a partir das fases 5, 7 e 9.
 - Cenários próprios por planeta: auroras, crateras, geleiras, florestas gigantes, portais, lava, cristais, desertos, oceanos, cidades, jardins suspensos, ruínas, cânions, cachoeiras, corais, anéis, tempestades, luas duplas, pontes estelares e templos.
 - **Limitação**: abertura do app no emulador não equivale a percorrer todas as fases tocando na tela. A dificuldade percebida e desempenho gráfico ainda exigem testes em celular real.
+
+## v0.6.3 — Mapa da Galáxia e menu com fundo dinâmico (17/10/2026)
+
+- **PR #8 integrado em `main`:** https://github.com/atshimura/Aventura-na-galaxia/pull/8
+- **Commit de integração:** `cb3c6d9266ec1ed3b13dce9bbfadf33a1518ddf3`
+- **CI de integração:** https://github.com/atshimura/Aventura-na-galaxia/actions/runs/39056751073 — **testes, compilação Android e instalação/abertura no emulador todos aprovados.**
+- **136 testes Node passaram (zero falhas)**, incluindo novo módulo de testes para o mapa e o menu; cobrem uma rota com 20 destinos não simétricos, progresso e exploração independentes, cálculo de rolagem inicial, renderização Canvas das ilustrações, seletor original e mudança de prévia, abertura do mapa, ficha de planeta bloqueado, ficha desbloqueada, nomes personalizados, fechamento sem perder posição e início da fase pela ficha.
+- Android debug: `versionCode 9`, `versionName 0.6.3`.
+- Menu mantém seleção por fase existente e usa o cenário planetário jogável como fundo, com transição discreta; mapa é adicional ao seletor e funciona offline.
+- Rota horizontal única com os vinte planetas, ilustrações únicas, névoa para destinos bloqueados, ficha ilustrada com informações e JOGAR se liberado, registros distintos de fase concluída (✓) e planeta explorado (👣), foco na fase atual (🚀).
+- **Limitação:** a inspeção gráfica interativa no navegador não foi possível porque a navegação local do navegador automatizado foi bloqueada pelo ambiente. O teste de emulador confirma instalação e abertura; os fluxos do mapa foram verificados na simulação automatizada de eventos de interface, **não em uma sessão completa de toque humano no dispositivo**. Conferir legibilidade e gesto de rolagem em aparelhos reais.
+- Artefato compilado na GitHub Actions a partir da branch `main`, exportado como `Aventura-na-Galaxia-v0.6.3.apk`. O APK é debug para testes.
