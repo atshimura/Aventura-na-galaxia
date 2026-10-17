@@ -23,9 +23,15 @@ test('interface completa: voo, visita, nomeação, retorno e estacionamento',asy
  frame(100);frame(155);
  game.spawnObstacle=()=>{};game.spawnCoin=()=>{};game.spawnCrate=()=>{};
  game.elapsed=game.duration*.4;frame(205);assert.equal(game.canExplorePlanet(),true);
- events.get('explore-btn:click')();assert.equal(game.state,'exploring');
- game.spawnPlanetObstacle=()=>{};game.spawnCoin=()=>{};
- game.planetElapsed=game.planetDuration-.02;frame(255);assert.equal(game.state,'naming');
+ events.get('explore-btn:click')();assert.equal(game.state,'landing');
+ for(let i=0;i<46;i++)frame(255+i*50);
+ assert.equal(game.state,'landed');
+ events.get('leave-rocket:click')();
+ for(let i=0;i<27;i++)frame(2600+i*50);
+ assert.equal(game.state,'walking');
+ events.get('board-rocket:click')();
+ for(let i=0;i<66;i++)frame(4000+i*50);
+ assert.equal(game.state,'naming');
  node('planet-input').value='Cometa Azul';events.get('name-planet:click')();
  assert.equal(game.state,'playing');assert.equal(game.save.planetNames[1],'Cometa Azul');
  game.elapsed=game.duration-8-.02;frame(305);assert.equal(game.state,'docking');

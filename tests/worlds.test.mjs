@@ -23,30 +23,41 @@ test('cada bioma recebe elementos visuais e perigos próprios',()=>{
  assert.notEqual(planetObstacleForBiome('ice'),planetObstacleForBiome('lava'));
 });
 test('exploração só pode ser iniciada na janela de aproximação',()=>{
+
  const game=g();game.start();assert.equal(game.enterPlanet(),false);
- game.elapsed=game.duration*.40;assert.equal(planetVisible(game.elapsed,game.duration),true);
- assert.equal(game.enterPlanet(),true);assert.equal(game.state,'exploring');assert.equal(game.enterPlanet(),false);
+ game.elapsed=game.duration*.4;assert.equal(game.enterPlanet(),true);
+ assert.equal(game.state,'landing');assert.equal(game.enterPlanet(),false);
 });
+
 test('relógio orbital fica congelado durante a visita e joystick continua funcionando',()=>{
+
  const game=g();game.start();game.elapsed=game.duration*.4;game.enterPlanet();
- const time=game.elapsed,old=game.target.x;game.steer({x:1,y:0},.05);assert.ok(game.target.x>old);
- game.spawnPlanetObstacle=()=>{};game.spawnCoin=()=>{};run(game,2);
- assert.equal(game.elapsed,time);assert.ok(game.planetElapsed>1.9);
+ const time=game.elapsed;run(game,2.5);
+ assert.equal(game.state,'landed');assert.equal(game.elapsed,time);
+ game.leaveRocket();run(game,1.4);assert.equal(game.state,'walking');
+ const x=game.astronaut.x;game.steer({x:1,y:0},.05);game.update(.05);
+ assert.ok(game.astronaut.x>x);
 });
+
 test('cristais dão três moedas e ficam na carteira',()=>{
+
  const game=g();game.start();game.elapsed=game.duration*.4;game.enterPlanet();
- game.planetObstacleTimer=99;game.planetCoinTimer=99;
- game.objects=[{kind:'gem',x:game.rocket.x,y:game.rocket.y,r:16}];game.update(.01);
- assert.equal(game.score,3);assert.equal(game.save.wallet,3);assert.ok(game.events.includes('Cristal coletado!'));
+ run(game,2.3);game.leaveRocket();run(game,1.3);
+ game.surface.objects=[{kind:'gem',x:game.astronaut.x,y:game.astronaut.y,r:16}];
+ game.update(.02);assert.equal(game.score,3);assert.equal(game.save.wallet,3);
+ assert.ok(game.events.includes('Cristal coletado!'));
 });
+
 test('após 16 segundos oferece nome de planeta e volta ao espaço',()=>{
+
  const game=g();game.start();game.elapsed=game.duration*.4;game.enterPlanet();
- game.spawnPlanetObstacle=()=>{};game.spawnCoin=()=>{};
- run(game,PLANET_SECONDS+.1);assert.equal(game.state,'naming');
- assert.equal(game.save.exploredPlanets[1],true);assert.ok(game.planetVisited);
+ run(game,2.3);game.leaveRocket();run(game,1.3);
+ run(game,17);assert.equal(game.state,'walking');
+ assert.equal(game.boardRocket(),true);run(game,3.2);assert.equal(game.state,'naming');
  assert.equal(game.namePlanet('  Azul do Sol  '),true);assert.equal(game.save.planetNames[1],'Azul do Sol');
  assert.equal(game.state,'playing');assert.equal(game.canExplorePlanet(),false);
 });
+
 test('nome é limitado e sanitizado; dados persistem entre execuções',()=>{
  const game=g();game.start();game.elapsed=game.duration*.4;game.enterPlanet();game.finishPlanet();game.namePlanet('<i>Novo Mundo</i>');
  assert.ok(!game.save.planetNames[1].includes('<'));
@@ -58,16 +69,31 @@ test('é possível não dar nome sem perder a descoberta',()=>{
  assert.equal(game.namePlanet(''),true);assert.equal(game.save.exploredPlanets[1],true);
 });
 test('pausa, retorno e encerramento continuam seguros',()=>{
- const game=g();game.start();game.elapsed=game.duration*.4;game.enterPlanet();game.planetElapsed=2;
- game.pause();game.update(3);assert.equal(game.planetElapsed,2);game.resume();assert.equal(game.state,'exploring');
- game.finishPlanet();game.namePlanet('Mundo');game.spawnObstacle=()=>{};game.spawnCoin=()=>{};game.spawnCrate=()=>{};
+
+ const game=g();game.start();game.elapsed=game.duration*.4;game.enterPlanet();
+ game.pause();game.update(3);assert.equal(game.transitionElapsed,0);
+ game.resume();assert.equal(game.state,'landing');
+ run(game,2.3);game.leaveRocket();run(game,1.3);
+ game.boardRocket();run(game,3.2);game.namePlanet('Mundo');
+ game.spawnObstacle=()=>{};game.spawnCoin=()=>{};game.spawnCrate=()=>{};
  run(game,game.duration);assert.equal(game.state,'victory');assert.equal(game.save.completed,1);
 });
+
 test('colisões planetárias podem causar fim de jogo sem registrar descoberta',()=>{
+
  const game=g();game.start();game.elapsed=game.duration*.4;game.enterPlanet();
- for(let i=0;i<3;i++){game.invincible=0;game.objects=[{kind:'planet-hazard',x:game.rocket.x,y:game.rocket.y,r:33}];game.update(.01);}
- assert.equal(game.state,'gameover');assert.equal(game.save.exploredPlanets[1],undefined);
+ run(game,2.3);game.leaveRocket();run(game,1.3);
+ const originalCheckpoint=game.checkpointX;
+ for(let i=0;i<3;i++){
+   game.invincible=0;
+   game.surface.objects=[{kind:'hazard',style:'spikes',x:game.astronaut.x,y:game.astronaut.y,r:22}];
+   game.update(.02);
+ }
+ assert.equal(game.hearts,3);assert.equal(game.state,'walking');
+ assert.equal(game.astronaut.x,originalCheckpoint);
+ assert.equal(game.save.exploredPlanets[1],undefined);
 });
+
 test('UI: explorar, nomear, novos cenários e controle analógico estão conectados',()=>{
  const html=readFileSync(new URL('../web/index.html',import.meta.url),'utf8');
  const js=readFileSync(new URL('../web/main.mjs',import.meta.url),'utf8');

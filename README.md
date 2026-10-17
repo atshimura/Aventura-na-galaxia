@@ -86,3 +86,11 @@ Para desenvolver: loja, missões, diálogos e conteúdo especial da galáxia sec
 - **Modo Infinito** com ondas progressivas, dificuldades crescentes e recorde de moedas salvo em separado. Duração ilimitada até perder os três corações.
 - **Lasers inimigos**: a partir da fase 3, naves alienígenas disparam projéteis horizontais que podem ser desviados ou bloqueados pelo escudo.
 - Mantém as 20 fases, visita de planetas, música, joystick e histórico de moedas.
+
+## Novidades v0.6.0
+- Trilha instrumental sintetizada mais rica (baixo, melodia, contraponto, arpejos e percussão), com reforço de volume e compressor para evitar distorção.
+- Controles individuais de volume da música e dos efeitos. Joystick move a nave sem demora acumulada e fica disponível também na caminhada.
+- **Exploração terrestre reconstruída:** aproximação e pouso na superfície, escotilha, desembarque, caminhada lateral/corrida com animação, salto com gravidade e botão próprio, terreno contínuo e câmera que acompanha o astronauta.
+- Obstáculos terrestres, precipícios, fauna amiga e perigosa, cristais coletáveis e pontos de salvamento. Ao perder três corações, o astronauta reaparece no último ponto salvo, restaurado.
+- Sem limite de tempo para explorar. Para retornar, é preciso voltar ao foguete e embarcar; a decolagem leva ao registro/nomeação do planeta.
+- A campanha espacial, a garagem e o Modo Infinito continuam disponíveis.
