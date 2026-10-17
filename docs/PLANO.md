@@ -26,3 +26,11 @@
 
 ## Testes futuros
 Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio, colisões, desempenho e persistência em celulares reais.
+
+## Entrega v0.5.0
+- Cenários ampliados com árvores e criaturas por bioma; visual detalhado, sem integração externa.
+- Astronauta pode sair e voltar ao foguete durante a exploração de um planeta, com joystick.
+- Garagem com quatro foguetes, compras por moedas e habilidades diferentes, salvas localmente.
+- Modo Infinito com ondas de dificuldade e recorde separado.
+- Naves alienígenas disparam lasers nas fases avançadas.
+- Próximos trabalhos: inimigos com padrões de tiro ainda mais variados, novas missões e regiões maiores para caminhar.

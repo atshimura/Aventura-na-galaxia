@@ -92,7 +92,7 @@ class GameState {
     this.astronaut={x:165,y:402,r:14};this.footTarget={x:165,y:402};this.walkingDistance=0;
     this.infiniteLevel=1;this.lasersFired=0;
   }
-  start(){this.state='playing';this.elapsed=0;this.distance=0;this.score=0;this.hearts=this.save.heartReserve;
+  start(){this.state='playing';this.elapsed=0;this.distance=0;this.score=0;this.hearts=this.mode==='infinite'?3:this.save.heartReserve;
     this.rocket={x:153,y:HEIGHT/2,r:21};this.target={x:153,y:HEIGHT/2};
     this.objects=[];this.invincible=1.6;this.shield=this.rocketModel.shield;this.obstacleTimer=1.5;this.coinTimer=0.65;
     this.crateTimer=11;this.events=[];this.dockingProgress=0;this.dockStart=null;this.pauseFrom='playing';this.planetElapsed=0;this.planetVisited=false;this.planetObstacleTimer=1.5;this.planetCoinTimer=.6;
@@ -117,7 +117,7 @@ class GameState {
   canExplorePlanet(){return this.mode==='adventure'&&this.state==='playing'&&!this.planetVisited&&planetVisible(this.elapsed,this.duration);}
   leaveRocket(){
     if(this.state!=='exploring')return false;
-    this.state='walking';this.astronaut={x:this.rocket.x+26,y:390,r:14};
+    this.state='walking';this.rocket={x:133,y:392,r:21};this.astronaut={x:169,y:389,r:14};
     this.footTarget={x:this.astronaut.x,y:this.astronaut.y};this.objects=[];
     this.planetObstacleTimer=1.3;this.planetCoinTimer=.5;
     this.invincible=Math.max(1.2,this.invincible);
@@ -226,7 +226,7 @@ class GameState {
         item.dead=true;
         if(this.shield){this.shield=0;this.invincible=1;this.events.push('Escudo protegeu!');}
         else{this.hearts--;this.invincible=1.8;this.events.push('Colisão!');
-          if(this.hearts<=0){this.hearts=0;this.save.heartReserve=3;this.state='gameover';this.events.push('Fim de jogo');}}
+          if(this.hearts<=0){this.hearts=0;if(this.mode==='adventure')this.save.heartReserve=3;this.state='gameover';this.events.push('Fim de jogo');}}
       }
     }
     this.objects=this.objects.filter(o=>!o.dead&&o.x>-90).concat(newLasers);
@@ -265,7 +265,7 @@ class GameState {
     this.elapsed+=dt;this.distance+=this.config.speed*dt;
     if(this.mode==='infinite'){
       this.infiniteLevel=Math.min(TOTAL_STAGES,Math.floor(this.elapsed/30)+1);
-      this.stage=getStage(this.infiniteLevel);
+      this.stage=getStage(this.infiniteLevel);this.planet=getPlanet(this.infiniteLevel);
       this.motion=obstacleMotion(this.infiniteLevel);
       const base=SETTINGS[this.difficulty];
       this.config.speed=base.speed+Math.min(220,Math.floor(this.elapsed/15)*7);

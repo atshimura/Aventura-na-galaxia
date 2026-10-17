@@ -78,3 +78,11 @@ Para desenvolver: loja, missões, diálogos e conteúdo especial da galáxia sec
 - A incursão ao planeta é opcional; ainda não implementa exploração totalmente livre, diálogos alienígenas nem missões secundárias. Esses recursos permanecem no planejamento.
 
 **Instalação:** APK de desenvolvimento (assinatura de debug). Faça cópia das informações importantes antes de desinstalar versões anteriores.
+
+## Novidades v0.5.0
+- **Planetas vivos** com árvores, cactos, florestas bioluminescentes, algas, peixes, criaturas alienígenas, robôs e fauna adaptada aos diferentes biomas. Ilustrações são geradas no Canvas e não exigem internet.
+- **Astronauta desembarca**: durante a exploração planetária, botão *SAIR DO FOGUETE*, movimento pelo joystick e *VOLTAR AO FOGUETE*. Cristais podem ser coletados caminhando.
+- **Garagem e desbloqueio de foguetes**: Aurora (grátis), Cometa Azul (60 moedas), Flor Estelar (120) e Guardião Solar (200). O foguete selecionado fica salvo, muda de aparência e possui diferenças de controle/proteção.
+- **Modo Infinito** com ondas progressivas, dificuldades crescentes e recorde de moedas salvo em separado. Duração ilimitada até perder os três corações.
+- **Lasers inimigos**: a partir da fase 3, naves alienígenas disparam projéteis horizontais que podem ser desviados ou bloqueados pelo escudo.
+- Mantém as 20 fases, visita de planetas, música, joystick e histórico de moedas.
