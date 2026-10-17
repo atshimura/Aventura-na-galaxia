@@ -140,6 +140,8 @@ test('pausa e retomada durante caminhada',()=>{
  g.pause();assert.equal(g.state,'paused');g.resume();assert.equal(g.state,'walking');
 });
 
+const web=new URL('../web/',import.meta.url);
+const file=n=>readFileSync(new URL(n,web),'utf8');
 test('interface inclui loja, infinito, saída e embarque',()=>{
  const html=file('index.html');
  for(const id of ['open-shop','infinite','shop','rocket-list','leave-rocket','board-rocket'])assert.ok(html.includes('id="'+id+'"'),id);
