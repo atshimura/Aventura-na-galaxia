@@ -51,3 +51,19 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Os perigos aparecem de maneira cumulativa; primeiro obstáculo na fase 2, primeiro buraco curto na fase 3, outros nas fases 5, 7 e 9 e alargamento gradual, verificando alcance máximo do salto.
 - A cada planeta, preservar identidade específica do cenário, da flora/fauna e dos obstáculos. Diferenciar inclusive planetas com o mesmo bioma.
 - Manter exploração livre, checkpoints, garagem e progressão de voos.
+
+
+## Decisão confirmada — fundo dinâmico da tela principal (pendente de implementação)
+- **Usar o seletor de fases que já existe no menu principal; não criar outro seletor ou reestruturar o menu.**
+- Ao selecionar uma fase existente, a imagem de fundo da própria tela principal deve mudar para mostrar o cenário correspondente ao planeta daquela fase. Exemplos: fase 1, Auréola; fase 3, Safira; fase 4, Florália.
+- A prévia usa, preferencialmente, os mesmos cenários dos 20 planetas que já existem no jogo, para representar fielmente o que o jogador encontrará.
+- Trocar o fundo assim que a seleção mudar, com transição visual discreta, preservando contraste e legibilidade dos botões e textos.
+- Ao retornar ao menu, o fundo deve refletir a fase selecionada naquele momento.
+- **Apenas decisão de produto registrada; implementação expressamente adiada até nova autorização do usuário.**
+
+## Ideia em discussão — mapa de progresso das fases (não aprovada / não implementar)
+- Analisar um mapa estelar com 20 destinos, ligados por rota visual, indicando fase concluída, fase atual/desbloqueada e destinos ainda bloqueados.
+- Manter conceitualmente separados os estados `fase concluída` e `planeta explorado`, porque o jogo registra ambos independentemente.
+- Reaproveitar progresso já salvo por fase, pontuações e nomes dos planetas. Não presumir critérios adicionais de pontuação/estrelas antes da definição.
+- Uma proposta é abrir o mapa a partir de um botão próprio na tela principal, mantendo o seletor de fase atual, e permitir selecionar pelo mapa fases já liberadas.
+- A apresentação, posição do acesso ao mapa, interação e demais detalhes precisam de decisão do usuário. Não há implementação autorizada.
