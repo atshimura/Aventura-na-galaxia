@@ -61,7 +61,7 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Ao retornar ao menu, o fundo deve refletir a fase selecionada naquele momento.
 - **Apenas decisão de produto registrada; implementação expressamente adiada até nova autorização do usuário.**
 
-## Ideia em discussão — mapa de progresso das fases (não aprovada / não implementar)
+## Mapa de progresso das fases — decisões de design em andamento (não implementar ainda)
 - Analisar um mapa estelar com 20 destinos, ligados por rota visual, indicando fase concluída, fase atual/desbloqueada e destinos ainda bloqueados.
 - Manter conceitualmente separados os estados `fase concluída` e `planeta explorado`, porque o jogo registra ambos independentemente.
 - Reaproveitar progresso já salvo por fase, pontuações e nomes dos planetas. Não presumir critérios adicionais de pontuação/estrelas antes da definição.
@@ -76,7 +76,7 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - A rota será **irregular, sinuosa e orgânica**, com curvas, alturas e espaçamentos variados; **evitar grades, linhas retas e organização simétrica**.
 - Cada fase será representada por **uma ilustração própria do planeta correspondente**, aproveitando as identidades visuais dos 20 planetas já existentes; não usar círculos genéricos numerados como principal representação.
 - Os elementos de progresso (concluída, atual/disponível, bloqueada, explorada) devem ser definidos visualmente sem confundir a conclusão espacial da fase com a exploração de seu planeta.
-- Ainda falta decidir a interação ao tocar um planeta e detalhes finos do desenho. **Nenhuma implementação autorizada.**
+- A interação ao tocar um planeta já foi definida em seção posterior; detalhes finos de desenho e navegação continuam em discussão. **Nenhuma implementação autorizada.**
 
 
 ### Decisão confirmada — interação com os planetas no mapa
@@ -91,5 +91,10 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - **Opção B escolhida pelo usuário:** a representação do progresso no Mapa da Galáxia terá um **caminho misterioso**. A parte percorrida da rota estará iluminada; as regiões ainda não alcançadas ficarão envolvidas em névoas espaciais, com planetas futuros **parcialmente encobertos**.
 - O mapa continua **adicional ao seletor existente**, horizontal, de rolagem contínua, com os 20 planetas ilustrados individualmente em uma trilha sinuosa e assimétrica.
 - O jogador poderá tocar em cada planeta para abrir uma ficha ilustrada; fases desbloqueadas oferecem a ação JOGAR. Os detalhes de informação apresentados para planetas bloqueados ainda estão em discussão.
-- **A definir:** gatilho de dissipação da névoa (desbloqueio da fase, exploração do planeta ou revelação gradual em dois níveis). Não presumir uma dessas opções até a escolha explícita.
+- **Opção A confirmada:** a névoa espacial que encobre um planeta se dissipa quando a fase correspondente é **desbloqueada**, mesmo que o astronauta ainda não tenha pousado ou explorado esse planeta. O planeta desbloqueado aparece claramente ilustrado. As fases ainda bloqueadas permanecem parcial e visualmente encobertas.
+- A exploração do planeta **não é requisito** para dissipar a névoa e continua sendo indicada separadamente na ficha/mapa.
 - **Somente registro da decisão de design; não implementar a funcionalidade ou alterar o código do aplicativo.**
+
+### Ponto pendente — informações sobre planetas bloqueados
+- A definir com o usuário: ao tocar em um planeta bloqueado, sua ficha mostra somente nome/número e condição para desbloqueio, ou revela informações adicionais. A resposta não altera a regra confirmada da névoa no próprio mapa.
+- Não implementar até autorização expressa.
