@@ -18,8 +18,15 @@
     <button id="explore-btn" class="explore-btn hidden" aria-label="Explorar planeta próximo">🪐 EXPLORAR PLANETA</button>
     <button id="leave-rocket" class="explore-btn walk-btn hidden">👩‍🚀 SAIR DO FOGUETE</button>
     <button id="board-rocket" class="explore-btn walk-btn hidden">🚀 EMBARCAR E DECOLAR</button>
+    <div id="walk-joystick" class="joystick walk-joystick hidden" role="group" aria-label="Joystick do astronauta: mova para esquerda ou direita">
+      <div class="joystick-ring" aria-hidden="true">
+        <span class="walk-arrow walk-arrow-left">◀</span><span class="walk-arrow walk-arrow-right">▶</span>
+        <div class="joystick-knob" id="walk-joystick-knob"></div>
+      </div>
+      <span class="joystick-label" aria-hidden="true">ANDAR / CORRER</span>
+    </div>
     <button id="jump-btn" class="jump-btn hidden" aria-label="Pular">⬆️ PULAR</button>
-    <div id="joystick" class="joystick hidden" role="group" aria-label="Controle virtual do foguete: mova em qualquer direção">
+    <div id="joystick" class="joystick hidden" role="group" aria-label="Joystick do foguete: mova em qualquer direção">
       <div class="joystick-ring" aria-hidden="true"><div class="joystick-knob" id="joystick-knob"></div></div>
       <span class="joystick-label" aria-hidden="true">MOVER</span>
     </div>

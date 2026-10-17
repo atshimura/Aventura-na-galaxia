@@ -36,30 +36,56 @@ function bindVolume(id,type){
 }
 bindVolume('music-volume','music');bindVolume('effects-volume','effects');
 
-let steeringPointer=null,steering={x:0,y:0},keys=new Set();
-const stick=$('joystick'),knob=$('joystick-knob');
-function resetSteering(){steeringPointer=null;steering={x:0,y:0};knob.style.transform='translate(-50%,-50%)';game.stopSteering();}
-function updateStick(e){
-  const r=stick.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;
-  const radius=Math.min(r.width,r.height)*.34;
-  steering=joystickVector(x,y,radius);
-  const mag=Math.hypot(x,y),scale=mag>radius?radius/mag:1;
-  knob.style.transform=`translate(-50%,-50%) translate(${(x*scale).toFixed(1)}px,${(y*scale).toFixed(1)}px)`;
+let keys=new Set();
+const flightStick=$('joystick');
+const walkStick=$('walk-joystick');
+function createVirtualStick(element,knob,mode){
+ const state={element,knob,mode,pointerId:null,value:{x:0,y:0}};
+ function update(event){
+   const bounds=element.getBoundingClientRect();
+   const radius=Math.max(1,Math.min(bounds.width,bounds.height)*.38);
+   const dx=event.clientX-(bounds.left+bounds.width/2);
+   const dy=event.clientY-(bounds.top+bounds.height/2);
+   // Na caminhada só existe movimento horizontal. A zona morta é menor
+   // para reconhecer imediatamente gestos curtos do polegar.
+   const vector=mode==='walk'?joystickVector(dx,0,radius,.075):joystickVector(dx,dy,radius,.10);
+   state.value=mode==='walk'?{x:vector.x,y:0}:vector;
+   const mag=Math.hypot(dx,dy),ratio=mag>radius?radius/mag:1;
+   const ox=mode==='walk'?Math.max(-radius,Math.min(radius,dx)):dx*ratio;
+   const oy=mode==='walk'?0:dy*ratio;
+   knob.style.transform=`translate(-50%,-50%) translate(${ox.toFixed(1)}px,${oy.toFixed(1)}px)`;
+ }
+ function clear(){
+   const old=state.pointerId;state.pointerId=null;state.value={x:0,y:0};
+   knob.style.transform='translate(-50%,-50%)';
+   if(old!==null&&element.hasPointerCapture?.(old))element.releasePointerCapture(old);
+   if(mode==='walk')game.walkAxis=0;
+ }
+ element.addEventListener('pointerdown',event=>{
+   if(game.state!==(mode==='walk'?'walking':'playing')||state.pointerId!==null)return;
+   event.preventDefault();state.pointerId=event.pointerId;
+   element.setPointerCapture(event.pointerId);update(event);
+ });
+ element.addEventListener('pointermove',event=>{
+   if(event.pointerId!==state.pointerId)return;
+   event.preventDefault();update(event);
+ });
+ function finish(event){if(event.pointerId===state.pointerId)clear();}
+ element.addEventListener('pointerup',finish);
+ element.addEventListener('pointercancel',finish);
+ element.addEventListener('lostpointercapture',finish);
+ return {...state, get pointer(){return state.pointerId;},get direction(){return state.value;},clear};
 }
-stick.addEventListener('pointerdown',e=>{
-  if(!['playing','walking'].includes(game.state)||steeringPointer!==null)return;
-  e.preventDefault();steeringPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e);
-});
-stick.addEventListener('pointermove',e=>{if(e.pointerId===steeringPointer){e.preventDefault();updateStick(e);}});
-function releaseStick(e){if(e.pointerId!==steeringPointer)return;resetSteering();if(stick.hasPointerCapture(e.pointerId))stick.releasePointerCapture(e.pointerId);}
-stick.addEventListener('pointerup',releaseStick);stick.addEventListener('pointercancel',releaseStick);
-stick.addEventListener('lostpointercapture',e=>{if(e.pointerId===steeringPointer)resetSteering();});
+const flightControl=createVirtualStick(flightStick,$('joystick-knob'),'flight');
+const walkControl=createVirtualStick(walkStick,$('walk-joystick-knob'),'walk');
+function resetSteering(){flightControl.clear();walkControl.clear();game.stopSteering();}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(game.save))}catch{/* armazenamento indisponível */}}
 function panels(active){
   displayMode=active;
   for(const id of ['menu','pause-menu','result','planet-name','shop'])$(id).classList.toggle('hidden',active!==id);
   $('hud').classList.toggle('hidden',active!=='playing');
-  stick.classList.toggle('hidden',active!=='playing'||!['playing','walking'].includes(game.state));
+  flightStick.classList.toggle('hidden',active!=='playing'||game.state!=='playing');
+  walkStick.classList.toggle('hidden',active!=='playing'||game.state!=='walking');
   $('explore-btn').classList.toggle('hidden',active!=='playing'||!game.canExplorePlanet());
   $('leave-rocket').classList.toggle('hidden',active!=='playing'||game.state!=='landed');
   $('board-rocket').classList.toggle('hidden',active!=='playing'||game.state!=='walking'||!canBoard(game.astronaut));
@@ -119,6 +145,8 @@ function updateHud(){
  $('explore-btn').classList.toggle('hidden',!game.canExplorePlanet());
  $('leave-rocket').classList.toggle('hidden',game.state!=='landed');
  $('board-rocket').classList.toggle('hidden',game.state!=='walking'||!canBoard(game.astronaut));
+ flightStick.classList.toggle('hidden',game.state!=='playing');
+ walkStick.classList.toggle('hidden',game.state!=='walking');
  $('jump-btn').classList.toggle('hidden',game.state!=='walking');
 }
 function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');toastTimeout=1.4;}
@@ -337,9 +365,12 @@ function loop(now){
  if(game.state==='playing'||game.state==='walking'){
    const keyboard={x:Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a')),
      y:Number(keys.has('ArrowDown')||keys.has('s'))-Number(keys.has('ArrowUp')||keys.has('w'))};
-   const input=steeringPointer!==null?steering:keyboard;
-   const mag=Math.hypot(input.x,input.y);
-   if(mag>.0001)game.steer({x:input.x/Math.max(1,mag),y:input.y/Math.max(1,mag)},dt);
+   const active=game.state==='walking'?walkControl:flightControl;
+   const input=active.pointer!==null?active.direction:keyboard;
+   const magnitude=Math.hypot(input.x,input.y);
+   // A intensidade do analógico regula a caminhada: um gesto pequeno
+   // anda devagar e um gesto maior corre; é possível saltar ao mesmo tempo.
+   if(magnitude>.0001)game.steer(input,dt);
    else if(game.state==='walking')game.walkAxis=0;
  }
  if(['playing','exploring','landing','landed','disembarking','walking','boarding','takeoff','docking'].includes(game.state)){
@@ -367,5 +398,9 @@ function loop(now){
 }
 menu();requestAnimationFrame(loop);
 // Somente para testes de integração no navegador; não modifica a interface.
-if(typeof window!=='undefined'&&new URLSearchParams(location.search).has('test'))window.__gameTest={get game(){return game},get steering(){return steering},begin,menu};
+if(typeof window!=='undefined'&&new URLSearchParams(location.search).has('test'))window.__gameTest={
+ get game(){return game}, get steering(){return flightControl.direction},
+ get walkingSteering(){return walkControl.direction},
+ get walkingPointer(){return walkControl.pointer},begin,menu
+};
 

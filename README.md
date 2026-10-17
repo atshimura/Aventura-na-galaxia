@@ -94,3 +94,11 @@ Para desenvolver: loja, missões, diálogos e conteúdo especial da galáxia sec
 - Obstáculos terrestres, precipícios, fauna amiga e perigosa, cristais coletáveis e pontos de salvamento. Ao perder três corações, o astronauta reaparece no último ponto salvo, restaurado.
 - Sem limite de tempo para explorar. Para retornar, é preciso voltar ao foguete e embarcar; a decolagem leva ao registro/nomeação do planeta.
 - A campanha espacial, a garagem e o Modo Infinito continuam disponíveis.
+
+## Correção v0.6.1 — controles da caminhada
+- O foguete continua usando o joystick no canto direito durante o voo.
+- Ao desembarcar, surge um **joystick verde à esquerda**, com indicações ◀ e ▶ e área de toque ampliada. Ele move o astronauta horizontalmente e permite caminhar devagar ou correr.
+- O botão **PULAR fica à direita** e pode ser pressionado ao mesmo tempo que o joystick (multitoque).
+- Joystick terrestre e espacial usam capturas de ponteiro independentes; ao soltar o polegar, trocar de estado, pausar ou perder foco, os comandos são zerados para evitar movimento involuntário.
+- O teclado também permite esquerda/direita (A/D ou setas) e salto (Espaço/seta para cima).
+- Ajuste da velocidade do astronauta proporcional à inclinação do joystick, preservando gravidade e saltos.

@@ -104,5 +104,6 @@ test('interface contém salto, joystick, controles de volume e cena planetária'
  const main=readFileSync(new URL('main.mjs',base),'utf8');
  for(const id of ['joystick','jump-btn','music-volume','effects-volume'])assert.ok(html.includes('id="'+id+'"'),id);
  assert.match(main,/drawPlatformPlanet/);assert.match(main,/game\.jump\(\)/);
- assert.match(main,/\['playing','walking'\]\.includes\(game\.state\)/);
+ assert.match(main,/game\.state==='playing'\|\|game\.state==='walking'/);
+ assert.match(main,/const input=active\.pointer!==null\?active\.direction:keyboard/);
 });
