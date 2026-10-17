@@ -53,7 +53,7 @@ export const terrainFeatureForBiome=biome=>({
  forest:'roots',portals:'energy-crystals',lava:'steam-vent',
  crystals:'crystal-spikes',desert:'cactus',ocean:'tidal-pools',
  city:'electric',ruins:'crumbling-stones',coral:'stinging-corals',
- rings:'gravity-orbs',storm:'electric'
+ rings:'gravity-orbs',storm:'thunder-rods'
 })[biome]||'spikes';
 const safeSurface=(x,biome,stage)=>groundAt(x,biome,stage)??440;
 export function createPlanetLevel(stage=1,biome='forest'){
