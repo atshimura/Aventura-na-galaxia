@@ -38,3 +38,14 @@
 .rocket-entry button:disabled{opacity:.65}
 @media(max-height:450px){.shop-screen h2{font-size:19px}.rocket-list{max-height:55vh}.rocket-entry{padding:5px}.rocket-entry .rocket-icon{height:30px;width:36px;min-width:36px;font-size:22px}.rocket-entry .rocket-sub{font-size:10px}}
 @media(max-width:480px){.rocket-list{grid-template-columns:1fr}.mode-actions>button{font-size:11px}}
+
+/* Plataforma lateral: salto separado do joystick, sem atrito artificial no dedo. */
+.jump-btn{position:absolute;left:max(24px,env(safe-area-inset-left));bottom:max(22px,env(safe-area-inset-bottom));z-index:5;
+ border:2px solid #bce8ff;background:linear-gradient(130deg,#2b8abaed,#2967b6ec);color:white;
+ font-weight:900;font-size:clamp(13px,2.4vw,20px);border-radius:50%;width:clamp(95px,22vh,136px);height:clamp(95px,22vh,136px);
+ touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 4px 17px #001931a9}
+.jump-btn:active{filter:brightness(1.35);transform:scale(.96)}
+.audio-settings{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;align-items:center}
+.audio-settings label{font-size:11px;color:#f3f9ff;display:flex;gap:7px;align-items:center}
+.audio-settings input{width:75px;accent-color:#8befff;touch-action:auto}
+@media(max-height:385px){.jump-btn{width:84px;height:84px}.audio-settings label{font-size:9px}.audio-settings input{width:58px}}
