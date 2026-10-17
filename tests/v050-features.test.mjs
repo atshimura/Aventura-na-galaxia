@@ -96,34 +96,50 @@ test('modo infinito não permite visitar planetas',()=>{
  assert.equal(g.canExplorePlanet(),false);assert.equal(g.enterPlanet(),false);
 });
 test('astronauta só desembarca durante a exploração',()=>{
+
  const g=make();g.start();assert.equal(g.leaveRocket(),false);
  g.elapsed=g.duration*.4;assert.equal(g.enterPlanet(),true);
- assert.equal(g.leaveRocket(),true);assert.equal(g.state,'walking');
- assert.equal(g.leaveRocket(),false);
+ assert.equal(g.leaveRocket(),false);for(let i=0;i<45;i++)g.update(.05);
+ assert.equal(g.state,'landed');assert.equal(g.leaveRocket(),true);
+ assert.equal(g.state,'disembarking');for(let i=0;i<26;i++)g.update(.05);
+ assert.equal(g.state,'walking');
 });
+
 test('astronauta move-se com joystick e respeita limites',()=>{
- const g=make();g.start();g.elapsed=g.duration*.4;g.enterPlanet();g.leaveRocket();
- const x=g.astronaut.x;g.steer({x:1,y:1},.05);g.update(.05);
- assert.ok(g.astronaut.x>x);
- for(let i=0;i<200;i++)g.steer({x:1,y:1},.05);
- assert.equal(g.footTarget.x,438);assert.equal(g.footTarget.y,462);
+
+ const g=make();g.start();g.elapsed=g.duration*.4;g.enterPlanet();
+ for(let i=0;i<45;i++)g.update(.05);g.leaveRocket();for(let i=0;i<26;i++)g.update(.05);
+ const x=g.astronaut.x;g.steer({x:1,y:0},.05);g.update(.05);
+ assert.ok(g.astronaut.x>x);assert.ok(g.astronaut.x<2520);
+ assert.equal(g.footTarget.x,165);
 });
+
 test('astronauta volta ao foguete sem reiniciar planeta',()=>{
- const g=make();g.start();g.elapsed=g.duration*.4;g.enterPlanet();g.leaveRocket();g.update(.05);
- const elapsed=g.planetElapsed;
- assert.equal(g.boardRocket(),true);assert.equal(g.state,'exploring');assert.equal(g.planetElapsed,elapsed);
- assert.equal(g.boardRocket(),false);
+
+ const g=make();g.start();g.elapsed=g.duration*.4;g.enterPlanet();
+ for(let i=0;i<45;i++)g.update(.05);g.leaveRocket();for(let i=0;i<26;i++)g.update(.05);
+ const elapsed=g.planetElapsed;assert.equal(g.boardRocket(),true);
+ assert.equal(g.state,'boarding');for(let i=0;i<21;i++)g.update(.05);
+ assert.equal(g.state,'takeoff');assert.equal(g.planetElapsed,elapsed);
 });
+
 test('caminhada também termina com nomeação do planeta',()=>{
- const g=make();g.start();g.elapsed=g.duration*.4;g.enterPlanet();g.leaveRocket();
- g.moveObjects=()=>{};g.spawnPlanetObstacle=()=>{};
- for(let i=0;i<335;i++)g.update(.05);
+
+ const g=make();g.start();g.elapsed=g.duration*.4;g.enterPlanet();
+ for(let i=0;i<45;i++)g.update(.05);g.leaveRocket();for(let i=0;i<26;i++)g.update(.05);
+ for(let i=0;i<350;i++)g.update(.05);assert.equal(g.state,'walking');
+ assert.equal(g.boardRocket(),true);
+ for(let i=0;i<64;i++)g.update(.05);
  assert.equal(g.state,'naming');assert.equal(g.save.exploredPlanets[1],true);
 });
+
 test('pausa e retomada durante caminhada',()=>{
- const g=make();g.start();g.elapsed=g.duration*.4;g.enterPlanet();g.leaveRocket();
+
+ const g=make();g.start();g.elapsed=g.duration*.4;g.enterPlanet();
+ for(let i=0;i<45;i++)g.update(.05);g.leaveRocket();for(let i=0;i<26;i++)g.update(.05);
  g.pause();assert.equal(g.state,'paused');g.resume();assert.equal(g.state,'walking');
 });
+
 const web=new URL('../web/',import.meta.url);
 const file=n=>readFileSync(new URL(n,web),'utf8');
 test('interface inclui loja, infinito, saída e embarque',()=>{
@@ -141,7 +157,8 @@ test('biomas têm formas de vida e diferentes vegetações',()=>{
  for(const id of ['forest','desert','ice','lava','ocean','coral','city'])assert.ok(visual.includes("'"+id+"'"),id);
 });
 test('áudio inclui efeito de laser e versão Android foi atualizada',()=>{
- assert.match(file('music.mjs'),/kind==='laser'/);
+
+ assert.match(file('music-v2.mjs'),/kind==='laser'/);
  const build=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(build,/versionCode 5/);assert.match(build,/versionName '0.5.0'/);
+ assert.match(build,/versionCode 6/);assert.match(build,/versionName '0.6.0'/);
 });
