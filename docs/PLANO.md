@@ -101,3 +101,11 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Assim que a fase é desbloqueada, desaparece a névoa que a cobre no mapa, e a ficha passa a exibir nome e ilustração completos, informações de progresso e botão **JOGAR**, conforme a regra já confirmada.
 - **Atenção:** isso não altera a regra de que a exploração do planeta e a conclusão da fase são estados distintos.
 - **Somente definição de projeto; não implementar até autorização expressa.**
+
+### Decisão confirmada — posicionamento inicial do Mapa da Galáxia
+- **Opção A confirmada:** ao abrir o mapa, a visualização deverá aparecer **centralizada na fase mais avançada que estiver desbloqueada**, com o foguete do jogador próximo ao respectivo planeta.
+- O usuário poderá arrastar a rota horizontalmente para a esquerda e para a direita para visitar todos os vinte planetas; não precisa começar novamente do planeta 1 a cada abertura.
+- Na ausência de progresso salvo, iniciar junto ao primeiro planeta, Auréola.
+- Respeitar os limites do mapa nas extremidades, sem tentar centralizar fora da área navegável.
+- **Estado de projeto:** falta apenas consolidar detalhes de apresentação do progresso (indicação visual separada para fase concluída versus planeta explorado) e comportamentos de interface; definir preferencialmente com padrões de projeto simples, sem novas rodadas extensas de perguntas.
+- **A implementação continua expressamente não autorizada até confirmação do usuário. Esta mudança altera apenas a documentação.**
