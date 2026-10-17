@@ -81,20 +81,23 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 
 ### Decisão confirmada — interação com os planetas no mapa
 - **Opção A confirmada:** tocar em um planeta no Mapa da Galáxia abre uma **ficha do planeta**, e não inicia imediatamente a fase.
-- A ficha apresentará **ilustração ampliada própria do planeta**, nome, número da fase, **melhor pontuação**, indicador de fase concluída e indicador separado de **planeta já explorado**.
+- Para planetas **desbloqueados**, a ficha apresentará **ilustração ampliada própria do planeta**, nome, número da fase, **melhor pontuação**, indicador de fase concluída e indicador separado de **planeta já explorado**.
 - Para planetas desbloqueados haverá botão **JOGAR**, que inicia a fase escolhida a partir da ficha.
-- O tratamento de planetas bloqueados e a apresentação visual detalhada da rota ainda serão definidos nas próximas decisões.
+- O tratamento de planetas bloqueados foi definido em seção posterior; a apresentação visual detalhada da rota ainda será refinada.
 - **Somente especificação de produto registrada. Não implementar o mapa ou alterar o aplicativo até nova autorização expressa.**
 
 
 ### Decisão confirmada — caminho misterioso e névoa espacial no mapa
 - **Opção B escolhida pelo usuário:** a representação do progresso no Mapa da Galáxia terá um **caminho misterioso**. A parte percorrida da rota estará iluminada; as regiões ainda não alcançadas ficarão envolvidas em névoas espaciais, com planetas futuros **parcialmente encobertos**.
 - O mapa continua **adicional ao seletor existente**, horizontal, de rolagem contínua, com os 20 planetas ilustrados individualmente em uma trilha sinuosa e assimétrica.
-- O jogador poderá tocar em cada planeta para abrir uma ficha ilustrada; fases desbloqueadas oferecem a ação JOGAR. Os detalhes de informação apresentados para planetas bloqueados ainda estão em discussão.
+- O jogador poderá tocar em cada planeta para abrir uma ficha ilustrada; fases desbloqueadas oferecem a ação JOGAR. Para planetas bloqueados, valem as regras de silhueta e informações limitadas registradas adiante.
 - **Opção A confirmada:** a névoa espacial que encobre um planeta se dissipa quando a fase correspondente é **desbloqueada**, mesmo que o astronauta ainda não tenha pousado ou explorado esse planeta. O planeta desbloqueado aparece claramente ilustrado. As fases ainda bloqueadas permanecem parcial e visualmente encobertas.
 - A exploração do planeta **não é requisito** para dissipar a névoa e continua sendo indicada separadamente na ficha/mapa.
 - **Somente registro da decisão de design; não implementar a funcionalidade ou alterar o código do aplicativo.**
 
-### Ponto pendente — informações sobre planetas bloqueados
-- A definir com o usuário: ao tocar em um planeta bloqueado, sua ficha mostra somente nome/número e condição para desbloqueio, ou revela informações adicionais. A resposta não altera a regra confirmada da névoa no próprio mapa.
-- Não implementar até autorização expressa.
+### Decisão confirmada — ficha de planeta bloqueado: preservar o mistério
+- **Opção B confirmada pelo usuário:** tocar em um planeta ainda bloqueado abre sua ficha com **número da fase, silhueta parcialmente encoberta do planeta e informação sobre como desbloquear**.
+- O **nome do planeta e sua ilustração completa permanecem ocultos** até o desbloqueio da fase. A ficha não oferece o botão **JOGAR** enquanto a fase estiver bloqueada.
+- Assim que a fase é desbloqueada, desaparece a névoa que a cobre no mapa, e a ficha passa a exibir nome e ilustração completos, informações de progresso e botão **JOGAR**, conforme a regra já confirmada.
+- **Atenção:** isso não altera a regra de que a exploração do planeta e a conclusão da fase são estados distintos.
+- **Somente definição de projeto; não implementar até autorização expressa.**
