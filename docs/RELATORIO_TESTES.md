@@ -41,3 +41,16 @@ Nenhuma validação de navegador externo foi contabilizada nesta execução porq
 - **117 testes Node passaram**, sem falhas, no PR e na versão integrada. Compilação Android `assembleDebug` aprovada, `versionCode=7`, `versionName=0.6.1`.
 - Abertura no emulador é verificada automaticamente, mas os controles físicos deverão ser experimentados no celular real.
 - Execução na main: https://github.com/atshimura/Aventura-na-galaxia/actions/runs/39042415926
+
+## Versão v0.6.2 — dificuldade crescente e planetas individualizados (17/10/2026)
+
+- **PR #7**: https://github.com/atshimura/Aventura-na-galaxia/pull/7, integrado na `main`.
+- Commit da integração: `c84b32e0f6e4e38e514c78b624f37827893e0256`.
+- Execução final do GitHub Actions na `main`: https://github.com/atshimura/Aventura-na-galaxia/actions/runs/39047979708.
+- **128 testes Node aprovados, zero falhas**, incluindo progressão de dificuldade, caminhada por todo o planeta 1 sem dano, buracos de fases posteriores, alcance do salto, fauna e renderização dos 20 planetas.
+- Compilação Android debug **aprovada**: `versionCode=8`, `versionName=0.6.2`.
+- Teste de instalação e abertura no emulador Android **aprovado**.
+- Inspeção visual complementar: todos os vinte cenários foram renderizados em Chromium (Canvas) sem erros JS, comparados em montagem 4 × 5.
+- Primeira fase sem precipícios, armadilhas ou criaturas hostis; primeiro obstáculo na fase 2, primeiro buraco na fase 3, buracos adicionais a partir das fases 5, 7 e 9.
+- Cenários próprios por planeta: auroras, crateras, geleiras, florestas gigantes, portais, lava, cristais, desertos, oceanos, cidades, jardins suspensos, ruínas, cânions, cachoeiras, corais, anéis, tempestades, luas duplas, pontes estelares e templos.
+- **Limitação**: abertura do app no emulador não equivale a percorrer todas as fases tocando na tela. A dificuldade percebida e desempenho gráfico ainda exigem testes em celular real.
