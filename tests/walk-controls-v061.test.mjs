@@ -34,8 +34,8 @@ test('voo continua com controle à direita',()=>{
 });
 test('Android 0.6.1 identifica esta correção',()=>{
  const build=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(build,/versionCode 7/);
- assert.match(build,/versionName '0.6.1'/);
+ assert.match(build,/versionCode 8/);
+ assert.match(build,/versionName '0.6.2'/);
 });
 
 test('simula os dois dedos no Android: astronauta anda, salta e para ao soltar',async()=>{

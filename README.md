@@ -102,3 +102,11 @@ Para desenvolver: loja, missões, diálogos e conteúdo especial da galáxia sec
 - Joystick terrestre e espacial usam capturas de ponteiro independentes; ao soltar o polegar, trocar de estado, pausar ou perder foco, os comandos são zerados para evitar movimento involuntário.
 - O teclado também permite esquerda/direita (A/D ou setas) e salto (Espaço/seta para cima).
 - Ajuste da velocidade do astronauta proporcional à inclinação do joystick, preservando gravidade e saltos.
+
+## Versão 0.6.2 — Mundos distintos e aprendizagem progressiva
+- **Planeta da fase 1 (Auréola) é totalmente seguro para aprender:** solo plano e contínuo, **sem buracos, obstáculos nocivos ou criaturas hostis**; cristais, criaturas amigas e pontos de salvamento continuam disponíveis.
+- Etapa 2 apresenta o primeiro perigo terrestre simples; a partir da fase 3 aparece um pequeno precipício. Outros buracos estreiam nas fases **5, 7 e 9**, e suas larguras aumentam gradualmente nas fases posteriores sem exigir saltos impossíveis.
+- Quantidade de obstáculos e criaturas hostis progride com a fase; cada bioma possui perigos característicos.
+- **20 cenários visualmente diferenciados** por paisagens próprias: cortinas de aurora, crateras de asteroides, pináculos gelados, árvores gigantes, portais, vulcões, vales de cristais, dunas, ilhas oceânicas, cidades iluminadas, jardins suspensos, ruínas, cânions, cachoeiras, corais, grandes anéis, tempestades elétricas, luas gêmeas, pontes de estrelas e templos dourados.
+- Mundos do mesmo bioma têm cenários diferentes, como florestas gigantes versus jardins suspensos, oceanos flutuantes versus cachoeiras e cidades tecnológicas versus templos.
+- Mantêm-se os controles v0.6.1: joystick terrestre à esquerda, salto à direita e exploração sem limite de tempo.
