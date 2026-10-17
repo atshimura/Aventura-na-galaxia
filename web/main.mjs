@@ -176,7 +176,7 @@ function showGalaxyMap(){
   const status=getMapStatus(game.save,point.stage);
   const btn=document.createElement('button');
   btn.type='button';btn.className='galaxy-planet'+(status.current?' is-current':'')+(!status.unlocked?' is-locked':'');
-  btn.style.left=point.x+'px';btn.style.top=(point.y/GALAXY_WIDTH*0+point.y/540*100)+'%';
+  btn.style.left=point.x+'px';btn.style.top=(point.y/540*100)+'%';
   btn.style.setProperty('--delay',(-point.stage*.23)+'s');
   const name=status.unlocked?(game.save.planetNames[point.stage]||point.planet.name):'???';
   btn.setAttribute('aria-label',status.unlocked?'Fase '+point.stage+', planeta '+name+(status.completed?', concluída':''): 'Fase '+point.stage+', planeta bloqueado');
@@ -501,7 +501,7 @@ function loop(now){
 }
 menu();requestAnimationFrame(loop);
 // Somente para testes de integração no navegador; não modifica a interface.
-if(typeof window!=='undefined'&&new URLSearchParams(location.search).has('test'))window.__gameTest={
+if(typeof window!=='undefined'&&new URLSearchParams(location.search).has('test'))window.__gameTest={get selectedStage(){return selectedStage},get previewStage(){return previewStage},get displayMode(){return displayMode},
  get game(){return game}, get steering(){return flightControl.direction},
  get walkingSteering(){return walkControl.direction},
  get walkingPointer(){return walkControl.pointer},begin,menu
