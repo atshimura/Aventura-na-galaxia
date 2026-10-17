@@ -1,29 +1,31 @@
-# Relatório de validação — Aventura na Galáxia v0.4.0
+# Validação — Aventura na Galáxia v0.5.0
 
-## Entrega
-- Pull request integrado: https://github.com/atshimura/Aventura-na-galaxia/pull/3
-- Commit da main: `1fdcf91b320008dc0fa44188e9f0301d90a694dd`
-- GitHub Actions main: https://github.com/atshimura/Aventura-na-galaxia/actions/runs/38984060191
-- Android `versionCode 4`, `versionName 0.4.0`; APK de debug.
+## Entrega e histórico
 
-## Validação concluída
-- **71 testes Node aprovados (0 falhas).** Incluem progressão, tipos cumulativos de obstáculos, vinte planetas, salvamento e compatibilidade com dados antigos, colisões, controles, cristal com recompensa, relógio pausado ao explorar, nomeação e retorno à estação.
-- **Compilação assembleDebug aprovada** com Gradle e Android SDK pelo GitHub Actions.
-- **Teste de instalação e abertura no emulador Android 35 aprovado** na branch do PR e na main. Captura de tela e logcat armazenados como artefatos.
-- O APK gerado contém os arquivos `world.mjs`, `world-render.mjs`, `core.mjs`, `main.mjs`, `music.mjs`, CSS e HTML.
+- Código integrado na branch `main` pelo [PR #4](https://github.com/atshimura/Aventura-na-galaxia/pull/4).
+- Commit de integração: `d0fea8e21e98d47e928490f2300c1732bce8e525`.
+- Execução final na main: https://github.com/atshimura/Aventura-na-galaxia/actions/runs/39026841168.
+- APK Android: `versionCode=5`, `versionName=0.5.0`, assinado como **debug**, indicado para testes.
 
-## Funcionalidade nova
-- Vinte planetas próprios com paisagens de gelo, floresta, lava, deserto, oceano, cristais, cidades, ruínas, portais etc.
-- Planeta opcional surge durante a travessia da fase e pode ser visitado usando botão dedicado.
-- Na visita, o tempo orbital congela; o foguete explora um trecho lateral de ~16s com obstáculos do bioma e cristais que rendem 3 moedas.
-- A visita permite nomear o planeta (opcional). Registro do planeta descoberto e seu nome persistem localmente.
-- Obstáculos cumulativos: asteroides, satélites, naves, destroços, cometas, minas, plasma, drones, cristais perigosos e vórtices.
+## Testes executados
 
-## Limites de validação
-- O emulador confirma instalação e abertura, mas **não testou manualmente cada uma das 20 fases em tela real**.
-- Os testes do fluxo jogável são simulações automatizadas de interface e lógica, não uma sessão com toque e áudio em aparelho físico.
-- A exploração de planetas é uma primeira incursão lateral opcional; **livre circulação entre planetas, conversas com alienígenas, missões secundárias e Galáxia das Maravilhas não estão implementadas nesta versão**.
-- O APK usa assinatura de depuração que pode diferir de versões anteriores. Se a atualização exigir desinstalação, os dados locais poderão ser perdidos.
+- **97 testes automatizados aprovados**, zero falhas: regras da campanha, navegação planetária, loja, compra e equipagem, modos, escudos, lasers, astronauta, persistência e verificação da interface estática.
+- `assembleDebug` do Gradle: **sucesso**, com os módulos e recursos dentro do APK.
+- Emulador Android API 35: **instalação e inicialização aprovadas**, com artefatos de screenshot e logcat.
+- Captura verificada mostra os comandos Modo Infinito, Loja de Foguetes, escolha de fase e dificuldade no menu Android.
+- Versão de navegador de arquivo único montada com os assets extraídos do APK final; JavaScript verificado com `node --check`.
 
-## Próximos testes recomendados
-Jogar em um aparelho Android: experimentar botão EXPLORAR PLANETA, tempo de incursão, joystick, coleta e nomeação; verificar dificuldade e legibilidade em telas pequenas.
+## Funcionalidades novas
+
+1. Fauna e flora procedurais de biomas: árvores, cactos, algas, peixes, animais terrestres, criaturas suspensas, robôs e ruínas.
+2. Astronauta pode sair do foguete no planeta, caminhar com joystick, coletar cristais e retornar à nave.
+3. Garagem com Aurora (gratuito), Cometa Azul (60 moedas), Flor Estelar (120) e Guardião Solar (200), com diferenças de controle, aparência e proteção.
+4. Modo Infinito: dificuldade aumenta a cada onda e recorde salvo separado da campanha.
+5. Naves alienígenas (da fase 3 em diante) disparam lasers que provocam dano e podem ser bloqueados pelo escudo.
+
+## Limitações e próximas validações
+
+- O teste automatizado no emulador verifica **abertura e ausência de falhas fatais**; não é um teste completo de toque, compra, caminhada e combate no Android.
+- A escuta da música, precisão do joystick e conforto dos menus em diferentes celulares devem ser avaliados manualmente.
+- A exploração a pé é um primeiro modo dentro da região planetária, não um mundo aberto completo.
+- O APK possui assinatura de debug gerada pelo CI; pode ser necessário desinstalar uma versão anterior, com perda do progresso local, para instalar.
