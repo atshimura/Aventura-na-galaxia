@@ -85,3 +85,11 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Para planetas desbloqueados haverá botão **JOGAR**, que inicia a fase escolhida a partir da ficha.
 - O tratamento de planetas bloqueados e a apresentação visual detalhada da rota ainda serão definidos nas próximas decisões.
 - **Somente especificação de produto registrada. Não implementar o mapa ou alterar o aplicativo até nova autorização expressa.**
+
+
+### Decisão confirmada — caminho misterioso e névoa espacial no mapa
+- **Opção B escolhida pelo usuário:** a representação do progresso no Mapa da Galáxia terá um **caminho misterioso**. A parte percorrida da rota estará iluminada; as regiões ainda não alcançadas ficarão envolvidas em névoas espaciais, com planetas futuros **parcialmente encobertos**.
+- O mapa continua **adicional ao seletor existente**, horizontal, de rolagem contínua, com os 20 planetas ilustrados individualmente em uma trilha sinuosa e assimétrica.
+- O jogador poderá tocar em cada planeta para abrir uma ficha ilustrada; fases desbloqueadas oferecem a ação JOGAR. Os detalhes de informação apresentados para planetas bloqueados ainda estão em discussão.
+- **A definir:** gatilho de dissipação da névoa (desbloqueio da fase, exploração do planeta ou revelação gradual em dois níveis). Não presumir uma dessas opções até a escolha explícita.
+- **Somente registro da decisão de design; não implementar a funcionalidade ou alterar o código do aplicativo.**
