@@ -30,3 +30,14 @@ Data: 17/10/2026.
 - O APK tem assinatura de debug, que pode diferir da versão anterior; instalar por cima pode falhar e a desinstalação pode eliminar dados locais.
 
 Nenhuma validação de navegador externo foi contabilizada nesta execução porque a navegação foi bloqueada pelo ambiente de teste; os testes Node e Android foram os que passaram.
+
+## v0.6.1 — joystick para caminhada e controles de dois dedos
+
+- Correção integrada na branch `main` pelo [PR #6](https://github.com/atshimura/Aventura-na-galaxia/pull/6).
+- Joystick de voo permanece à direita; na exploração o astronauta recebe joystick próprio **à esquerda**, com controle horizontal e indicação de direção, enquanto o botão **PULAR** fica à direita.
+- Os controles de voo e caminhada têm ponteiros/capturas independentes; o astronauta pode andar e saltar simultaneamente usando dois dedos.
+- Velocidade de caminhada/corrida varia conforme a intensidade do analógico; soltar o dedo cancela imediatamente o movimento.
+- Uma verificação de integração simula toque em joystick, caminhada, salto por outro dedo, continuação do deslocamento durante o salto, parada e inversão da direção.
+- **117 testes Node passaram**, sem falhas, no PR e na versão integrada. Compilação Android `assembleDebug` aprovada, `versionCode=7`, `versionName=0.6.1`.
+- Abertura no emulador é verificada automaticamente, mas os controles físicos deverão ser experimentados no celular real.
+- Execução na main: https://github.com/atshimura/Aventura-na-galaxia/actions/runs/39042415926
