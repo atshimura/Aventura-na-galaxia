@@ -16,6 +16,8 @@
       <div class="hud-group"><div class="progress"><div id="progress-fill"></div></div><button id="pause" class="round-btn" aria-label="Pausar">Ⅱ</button></div>
     </section>
     <button id="explore-btn" class="explore-btn hidden" aria-label="Explorar planeta próximo">🪐 EXPLORAR PLANETA</button>
+    <button id="leave-rocket" class="explore-btn walk-btn hidden">👩‍🚀 SAIR DO FOGUETE</button>
+    <button id="board-rocket" class="explore-btn walk-btn hidden">🚀 VOLTAR AO FOGUETE</button>
     <div id="joystick" class="joystick hidden" role="group" aria-label="Controle virtual do foguete: mova em qualquer direção">
       <div class="joystick-ring" aria-hidden="true"><div class="joystick-knob" id="joystick-knob"></div></div>
       <span class="joystick-label" aria-hidden="true">MOVER</span>
@@ -30,11 +32,19 @@
         <select id="stage-select" aria-label="Selecionar fase desbloqueada"><option value="1">1 · Nebulosa Aurora</option></select>
         <p class="stage-info" id="stage-info">Explore a primeira região da galáxia.</p>
         <button class="primary" id="start">🚀 JOGAR — FASE 1</button>
+        <div class="mode-actions"><button class="secondary" id="infinite">♾️ MODO INFINITO</button><button class="secondary" id="open-shop">🛍️ LOJA DE FOGUETES</button></div>
+        <p class="stage-info" id="rocket-equipped">🚀 Aurora equipado</p>
         <label class="difficulty-label" for="difficulty">DIFICULDADE</label>
         <select id="difficulty"><option value="facil">🟢 Fácil</option><option selected value="normal">🟡 Normal</option><option value="dificil">🔴 Difícil</option></select>
       </div>
-      <div class="menu-footer"><span id="menu-wallet">🪙 0 moedas</span><span id="menu-best">🏆 Recorde: 0</span><button id="sound" class="muted-button">🔊 Som ligado</button></div>
-      <p class="tiny">Use o controle circular no canto direito ou arraste o foguete para desviar e coletar moedas. Quando aparecer EXPLORAR PLANETA, toque para visitar e nomear um mundo!</p>
+      <div class="menu-footer"><span id="menu-wallet">🪙 0 moedas</span><span id="menu-best">🏆 Recorde: 0</span><span id="menu-infinite">♾️ 0</span><button id="sound" class="muted-button">🔊 Som ligado</button></div>
+      <p class="tiny">Use o joystick à direita para pilotar e caminhar. Visite planetas com árvores e bichinhos, encontre cristais, compre novos foguetes na loja e desvie dos lasers alienígenas!</p>
+    </section>
+    <section id="shop" class="overlay hidden shop-screen" aria-labelledby="shop-title">
+      <h2 id="shop-title">🛍️ GARAGEM GALÁCTICA</h2>
+      <p id="shop-wallet" class="stage-info">🪙 0 moedas</p>
+      <div id="rocket-list" class="rocket-list" aria-label="Foguetes disponíveis"></div>
+      <button id="shop-close" class="secondary">⌂ VOLTAR AO MENU</button>
     </section>
     <section id="planet-name" class="overlay hidden" aria-labelledby="planet-name-title">
       <div class="hero-icon">🪐</div><h2 id="planet-name-title">PLANETA DESCOBERTO!</h2>
