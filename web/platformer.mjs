@@ -42,7 +42,8 @@ export function jumpAstronaut(person){
 }
 export function moveAstronaut(person,axis,dt,biome,stage){
   const d=clamp(dt,0,.05),horizontal=clamp(Number(axis)||0,-1,1);
-  const speed=Math.abs(horizontal)>.72?235:155;
+  // A velocidade acompanha a força do analógico: de passos lentos a corrida.
+  const speed=235*Math.abs(horizontal);
   const previousY=person.y;
   person.vx=horizontal*speed;
   person.x=clamp(person.x+person.vx*d,42,WORLD_LENGTH-40);
