@@ -7,7 +7,7 @@ Jogo de exploração espacial para Android, em português, com visual de desenho
 - 3 vidas e colisões com asteroides, satélites e naves (sem armas); imunidade breve após dano.
 - Moedas douradas que valem 1 ponto e 1 moeda na carteira; recorde e carteira persistidos.
 - Dificuldades Fácil, Normal e Difícil.
-- Caixas-surpresa com escudo, coração ou invencibilidade.
+- Caixas-surpresa com seis prêmios úteis: escudo, coração, ímã de moedas, tesouro espacial, congelamento e raio de limpeza.
 - Música procedural de exploração e efeitos sonoros, com opção de desligar.
 - Pausa e retomada; pausa automática ao perder foco.
 - Fase 1 com chegada à estação espacial, conserto de 1 coração por 25 moedas.
@@ -120,3 +120,12 @@ Para desenvolver: loja, missões, diálogos e conteúdo especial da galáxia sec
 - Ao tocar num planeta, uma ficha se abre sobre o mapa. Planetas desbloqueados exibem ilustração ampliada, nome, descrição, recorde e botão JOGAR; bloqueados preservam nome e ilustração ocultos, mostrando apenas silhueta, número e regra de desbloqueio.
 - Fechar a ficha mantém a posição de rolagem do mapa. Navegação por teclado: setas para deslocar e Escape para fechar ficha ou mapa.
 - Tudo funciona offline; sem novas bibliotecas ou servidores. Progresso e nomes aproveitam o salvamento local anterior.
+
+## v0.6.4 — Caixinha de surpresas ampliada
+- Seis prêmios: escudo, recuperação de coração, ímã de moedas (8 s), tesouro espacial (+8 a +15 moedas), congelamento (6 s, perigos com 30% da velocidade), e raio de limpeza (elimina perigos próximos e à frente).
+- Pesos-base: escudo 20%, coração 18%, ímã 19%, tesouro 20%, congelamento 13%, raio 10%. Apenas opções úteis entram no sorteio, e os pesos restantes são renormalizados.
+- Coração não é sorteado com 3 vidas; escudo não é sorteado se já houver um ativo; limpeza somente quando há perigo no alcance. Ímã e congelamento podem ser sorteados novamente e **reiniciam** seus respectivos temporizadores, sem acumular duração.
+- Tesouro espacial incrementa carteira, pontos e recordes. A coleta de moedas por ímã funciona durante o voo; os perigos (incluindo projéteis) são reduzidos a 30% da velocidade normal durante congelamento, sem desacelerar a nave.
+- Ícones com contagem regressiva, feedback sonoro existente e sinais visuais para poderes ativos.
+- A invencibilidade longa deixa de ser um prêmio. A proteção curta após dano, colisão com escudo e mudanças de modo permanece, prevenindo dano repetido.
+- Durações de poderes contadas durante o voo ativo, sem gastar tempo durante pausa ou exploração no planeta.
