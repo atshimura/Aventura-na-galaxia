@@ -1,6 +1,7 @@
 import {GameState, WIDTH, HEIGHT, STAGE_SECONDS, REPAIR_COST, TOTAL_STAGES, STAGES, canPlayStage, normalizePointer, joystickVector, stationPose, sanitizeSave} from './core.mjs';
 import {SpaceAudio} from './music-v2.mjs';
 import {drawPlatformPlanet} from './platformer-render.mjs';
+import {GALAXY_WIDTH,GALAXY_POINTS,getMapStatus,mapStartScroll,drawGalaxyRoute,drawPlanetPortrait} from './galaxy-map.mjs';
 import {FLIGHT_PAD_X,canBoard} from './platformer.mjs';
 import {ROCKETS,rocketById,sanitizeRockets} from './rockets.mjs';
 import {getPlanet} from './world.mjs';
@@ -11,6 +12,12 @@ const KEY='aventura-na-galaxia-v1';
 function loadSave(){try{return sanitizeSave(JSON.parse(localStorage.getItem(KEY)))}catch{return sanitizeSave(null)}}
 let game=new GameState({save:loadSave()});
 let selectedStage=Math.min(TOTAL_STAGES,game.save.completed+1);
+let previewStage=selectedStage,previewOldStage=selectedStage,previewChangedAt=0;
+function syncMenuPreview(){
+ if(previewStage===selectedStage)return;
+ previewOldStage=previewStage;previewStage=selectedStage;
+ previewChangedAt=performance.now();
+}
 function configureStageSelect(){
  const sel=$('stage-select'),options=[];
  for(const stage of STAGES){
@@ -20,6 +27,7 @@ function configureStageSelect(){
  sel.innerHTML=options.join('');
  selectedStage=canPlayStage(game.save,selectedStage)?selectedStage:Math.min(TOTAL_STAGES,game.save.completed+1);
  sel.value=String(selectedStage);
+ syncMenuPreview();
  const p=getPlanet(selectedStage),name=game.save.planetNames[selectedStage]||p.name;
  $('stage-info').textContent=`${STAGES[selectedStage-1].icon} ${STAGES[selectedStage-1].name} • 🪐 ${name} ${game.save.exploredPlanets[selectedStage]?'✓ visitado':'por descobrir'}`;
  $('start').textContent=`🚀 JOGAR — FASE ${selectedStage}`;
@@ -82,7 +90,7 @@ function resetSteering(){flightControl.clear();walkControl.clear();game.stopStee
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(game.save))}catch{/* armazenamento indisponível */}}
 function panels(active){
   displayMode=active;
-  for(const id of ['menu','pause-menu','result','planet-name','shop'])$(id).classList.toggle('hidden',active!==id);
+  for(const id of ['menu','pause-menu','result','planet-name','shop','galaxy-map'])$(id).classList.toggle('hidden',active!==id);
   $('hud').classList.toggle('hidden',active!=='playing');
   flightStick.classList.toggle('hidden',active!=='playing'||game.state!=='playing');
   walkStick.classList.toggle('hidden',active!=='playing'||game.state!=='walking');
@@ -153,6 +161,76 @@ function toast(message){$('toast').textContent=message;$('toast').classList.add(
 $('explore-btn').addEventListener('click',()=>{if(game.enterPlanet()){resetSteering();panels('playing');audio.sound('dock');toast('🌍 Aproximando para pousar no planeta!');updateHud();}});
 $('leave-rocket').addEventListener('click',()=>{if(game.leaveRocket()){resetSteering();panels('playing');toast('👩‍🚀 Escotilha abrindo!');}});
 $('board-rocket').addEventListener('click',()=>{if(game.boardRocket()){resetSteering();panels('playing');toast('🚀 Preparando decolagem!');}});
+
+/** Tela adicional: não substitui a seleção de fases existente. */
+let mapCardStage=0,mapCardTrigger=null;
+function showGalaxyMap(){
+ if(game.state!=='menu')return;
+ panels('galaxy-map');
+ $('galaxy-card').classList.add('hidden');
+ const viewport=$('galaxy-viewport'),nodes=$('galaxy-nodes');
+ nodes.replaceChildren();
+ const surface=$('galaxy-route');
+ drawGalaxyRoute(surface.getContext('2d'),game.save);
+ for(const point of GALAXY_POINTS){
+  const status=getMapStatus(game.save,point.stage);
+  const btn=document.createElement('button');
+  btn.type='button';btn.className='galaxy-planet'+(status.current?' is-current':'')+(!status.unlocked?' is-locked':'');
+  btn.style.left=point.x+'px';btn.style.top=(point.y/540*100)+'%';
+  btn.style.setProperty('--delay',(-point.stage*.23)+'s');
+  const name=status.unlocked?(game.save.planetNames[point.stage]||point.planet.name):'???';
+  btn.setAttribute('aria-label',status.unlocked?'Fase '+point.stage+', planeta '+name+(status.completed?', concluída':''): 'Fase '+point.stage+', planeta bloqueado');
+  btn.dataset.stage=String(point.stage);
+  const art=document.createElement('canvas');art.width=144;art.height=144;
+  art.setAttribute('aria-hidden','true');
+  drawPlanetPortrait(art.getContext('2d'),point.planet,{locked:!status.unlocked,size:144});
+  const title=document.createElement('span');title.className='galaxy-planet-name';
+  title.textContent=point.stage+' · '+name;
+  const flags=document.createElement('span');flags.className='galaxy-flags';
+  if(status.completed){const x=document.createElement('span');x.className='galaxy-flag complete';x.textContent='✓';x.title='Fase concluída';flags.appendChild(x);}
+  if(status.explored){const x=document.createElement('span');x.className='galaxy-flag explored';x.textContent='👣';x.title='Planeta explorado';flags.appendChild(x);}
+  if(status.current){const x=document.createElement('span');x.className='galaxy-flag current';x.textContent='🚀';x.title='Fase atual';flags.appendChild(x);}
+  btn.appendChild(art);btn.appendChild(title);btn.appendChild(flags);
+  btn.addEventListener('click',()=>showGalaxyCard(point.stage,btn));
+  nodes.appendChild(btn);
+ }
+ const firstLocked=GALAXY_POINTS.find(p=>!getMapStatus(game.save,p.stage).unlocked);
+ const mist=$('galaxy-mist');
+ mist.classList.toggle('hidden',!firstLocked);
+ if(firstLocked){mist.style.left=(firstLocked.x-110)+'px';mist.style.width=(GALAXY_WIDTH-firstLocked.x+140)+'px';}
+ viewport.scrollLeft=mapStartScroll(game.save,viewport.clientWidth);
+}
+function showGalaxyCard(stage,trigger){
+ const status=getMapStatus(game.save,stage),planet=getPlanet(stage);
+ mapCardStage=stage;mapCardTrigger=trigger;
+ const locked=!status.unlocked;
+ $('galaxy-card-stage').textContent='FASE '+stage+' DE '+TOTAL_STAGES;
+ $('galaxy-card-title').textContent=locked?'MUNDO DESCONHECIDO':game.save.planetNames[stage]||planet.name;
+ $('galaxy-card-info').textContent=locked?
+  'Conclua a fase '+(stage-1)+' para dissipar a névoa e revelar este planeta.':
+  STAGES[stage-1].name+' · '+planet.landmark;
+ $('galaxy-card-status').textContent=locked?'🔒 Fase bloqueada':status.completed?'✓ Fase concluída':'🚀 Fase disponível para jogar';
+ $('galaxy-card-explored').textContent=locked?'☁️ A descoberta ainda está envolta em mistério':status.explored?'👣 Planeta explorado':'◌ Planeta ainda não explorado';
+ $('galaxy-card-best').textContent=locked?'':('⭐ Melhor pontuação: '+status.best);
+ $('galaxy-card-play').classList.toggle('hidden',locked);
+ $('galaxy-card-portrait').setAttribute('aria-label',locked?'Silhueta de um planeta desconhecido':'Ilustração de '+(game.save.planetNames[stage]||planet.name));
+ drawPlanetPortrait($('galaxy-card-portrait').getContext('2d'),planet,{locked,size:200});
+ $('galaxy-card').classList.remove('hidden');
+ $('galaxy-card-close').focus();
+}
+function closeGalaxyCard(){
+ $('galaxy-card').classList.add('hidden');
+ mapCardTrigger?.focus?.();
+}
+$('galaxy-open').addEventListener('click',showGalaxyMap);
+$('galaxy-close').addEventListener('click',menu);
+$('galaxy-card-close').addEventListener('click',closeGalaxyCard);
+$('galaxy-card-return').addEventListener('click',closeGalaxyCard);
+$('galaxy-card-play').addEventListener('click',()=>{
+ if(!getMapStatus(game.save,mapCardStage).unlocked)return;
+ begin(mapCardStage);
+});
+
 $('open-shop').addEventListener('click',showShop);$('shop-close').addEventListener('click',menu);
 $('rocket-list').addEventListener('click',e=>{
  const button=e.target.closest('[data-rocket]');if(!button)return;
@@ -184,6 +262,11 @@ $('jump-btn').addEventListener('pointerdown',e=>{
 });
 document.addEventListener('keydown',e=>{
  if((e.key===' '||e.key==='ArrowUp')&&game.state==='walking'){e.preventDefault();if(game.jump())audio.sound('jump');}
+  if(displayMode==='galaxy-map'){
+   if(e.key==='Escape'){e.preventDefault();if(!$('galaxy-card').classList.contains('hidden'))closeGalaxyCard();else menu();}
+   else if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();$('galaxy-viewport').scrollLeft+=e.key==='ArrowRight'?190:-190;}
+   return;
+  }
   if(e.key==='Escape'){if(['playing','exploring','walking','docking'].includes(game.state)){$('pause').click();}else if(game.state==='paused'){$('resume').click();}}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)){keys.add(e.key);e.preventDefault();}
 });
@@ -307,7 +390,27 @@ function astronaut(x,y,t){
  ctx.strokeStyle='#d5ecff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-9,-4);ctx.lineTo(-19,6+Math.sin(t/300)*2);ctx.moveTo(9,-4);ctx.lineTo(19,3);ctx.stroke();
  ctx.fillStyle='#65f8dd';ctx.fillRect(-4,0,8,5);ctx.restore();
 }
+
+/** A tela principal usa exatamente o mesmo renderizador das paisagens jogáveis. */
+function drawMenuPlanetPreview(stage,time,alpha=1){
+ const planet=getPlanet(stage);
+ const projection={
+  planet,astronaut:{x:430,y:390},surface:{objects:[]},
+  rocketModel:game.rocketModel,save:game.save,state:'landed',cameraX:0
+ };
+ ctx.save();ctx.globalAlpha=alpha;
+ drawPlatformPlanet(ctx,projection,time);
+ ctx.restore();
+}
+function drawMenuBackground(time){
+ const elapsed=Math.max(0,time-previewChangedAt);
+ const mix=previewOldStage===previewStage?1:Math.min(1,elapsed/430);
+ if(mix<1)drawMenuPlanetPreview(previewOldStage,time,1);
+ drawMenuPlanetPreview(previewStage,time,mix);
+ if(mix===1)previewOldStage=previewStage;
+}
 function render(t){
+ if(displayMode==='menu'&&game.state==='menu'){drawMenuBackground(t);return;}
  const planetStates=['landing','landed','disembarking','walking','boarding','takeoff'];
  const planet=planetStates.includes(game.state)||(game.state==='paused'&&planetStates.includes(game.pauseFrom))||game.state==='naming';
  const active=['playing','paused','docking','gameover','victory','exploring','naming',...planetStates].includes(game.state);
@@ -398,7 +501,7 @@ function loop(now){
 }
 menu();requestAnimationFrame(loop);
 // Somente para testes de integração no navegador; não modifica a interface.
-if(typeof window!=='undefined'&&new URLSearchParams(location.search).has('test'))window.__gameTest={
+if(typeof window!=='undefined'&&new URLSearchParams(location.search).has('test'))window.__gameTest={get selectedStage(){return selectedStage},get previewStage(){return previewStage},get displayMode(){return displayMode},
  get game(){return game}, get steering(){return flightControl.direction},
  get walkingSteering(){return walkControl.direction},
  get walkingPointer(){return walkControl.pointer},begin,menu

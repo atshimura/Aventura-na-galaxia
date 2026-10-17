@@ -32,10 +32,10 @@ test('voo continua com controle à direita',()=>{
  assert.match(main,/const flightStick=\$\('joystick'\)/);
  assert.match(main,/flightStick\.classList\.toggle\('hidden',game\.state!=='playing'\)/);
 });
-test('Android 0.6.1 identifica esta correção',()=>{
+test('Android 0.6.1 é compatível com a versão atual',()=>{
  const build=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(build,/versionCode 8/);
- assert.match(build,/versionName '0.6.2'/);
+ assert.match(build,/versionCode 9/);
+ assert.match(build,/versionName '0.6.3'/);
 });
 
 test('simula os dois dedos no Android: astronauta anda, salta e para ao soltar',async()=>{

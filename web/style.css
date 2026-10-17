@@ -80,3 +80,67 @@
  .jump-btn{width:94px;height:94px;right:12px;bottom:8px;}
  .walk-arrow{font-size:19px}
 }
+
+/* v0.6.3 — prévia do planeta no menu, sem alterar o seletor de fases. */
+#menu.overlay{background:linear-gradient(90deg,rgba(3,9,28,.76) 0%,rgba(7,12,36,.50) 46%,rgba(3,7,22,.76) 100%);}
+#galaxy-open{border-color:#7beace;background:linear-gradient(110deg,#11505cda,#22366ecd);color:#d3fff1;flex:1 1 100%}
+#menu .mode-actions{gap:5px}
+#menu .mode-actions>button{padding:6px 8px;font-size:clamp(10px,1.4vw,13px)}
+#menu .stage-info{text-shadow:0 2px 8px #000}
+@media(max-height:410px){#menu .hero-icon{display:none}#menu .menu-actions{gap:3px}#menu .menu-footer{gap:5px}#menu .tiny{display:none}}
+
+/* Mapa único: scroll horizontal nativo, trilha sinuosa e ilustrações únicas. */
+.galaxy-screen{z-index:10;padding:0;gap:0;justify-content:stretch;background:#050b22;overflow:hidden}
+.galaxy-header{display:flex;align-items:center;justify-content:space-between;gap:15px;width:100%;padding:10px max(18px,env(safe-area-inset-right)) 9px max(18px,env(safe-area-inset-left));background:linear-gradient(90deg,#071735,#12224a);border-bottom:1px solid #81caed59;min-height:68px;z-index:2}
+.galaxy-heading{text-align:left}
+.galaxy-eyebrow{color:#8ce8ed;font-size:10px;font-weight:850;letter-spacing:.19em}
+#galaxy-title{font-size:clamp(18px,3.2vw,29px);color:#d9efff;line-height:1.13;margin:2px 0}
+.galaxy-back{white-space:nowrap;font-size:clamp(10px,1.4vw,14px)!important}
+.galaxy-viewport{width:100%;flex:1;min-height:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x;scrollbar-color:#76c2dc #112140;scrollbar-width:thin;position:relative}
+.galaxy-viewport:focus-visible{outline:2px solid #90f2fc;outline-offset:-2px}
+.galaxy-track{width:4740px;height:100%;position:relative;isolation:isolate;overflow:hidden}
+#galaxy-route{width:4740px;height:100%;display:block;pointer-events:none}
+.galaxy-nodes{position:absolute;inset:0;pointer-events:none}
+.galaxy-planet{position:absolute;width:156px;min-height:169px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0;border:0;background:none;color:#f5faff;pointer-events:auto;touch-action:pan-x;cursor:pointer;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
+.galaxy-planet:focus-visible{outline:3px solid #b4ffff;border-radius:22px}
+.galaxy-planet canvas{width:144px;height:144px;display:block;object-fit:contain;filter:drop-shadow(0 7px 16px #010a26a6);animation:planet-float 5.9s ease-in-out infinite;animation-delay:var(--delay,0s)}
+.galaxy-planet.is-current canvas{filter:drop-shadow(0 0 21px #62ffe7) drop-shadow(0 7px 12px #010a26)}
+.galaxy-planet.is-locked canvas{filter:grayscale(.7) brightness(.68)}
+.galaxy-planet-name{margin-top:-9px;padding:4px 9px;border:1px solid #74a5d876;background:#081831e8;border-radius:14px;font-weight:850;font-size:12px;max-width:166px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-shadow:0 3px 9px #0008}
+.galaxy-planet.is-current .galaxy-planet-name{border-color:#69ffd0;color:#a2ffe3}
+.galaxy-flags{position:absolute;top:8px;right:5px;display:flex;gap:3px}
+.galaxy-flag{display:inline-flex;justify-content:center;align-items:center;width:27px;height:27px;border-radius:50%;font-size:15px;background:#112748f5;border:1px solid #70b0e3;box-shadow:0 2px 8px #000a}
+.galaxy-flag.complete{color:#b8ffbd;border-color:#8dffc1}
+.galaxy-flag.current{color:#ffffff;border-color:#ffe3a0;background:#7a5145e8}
+.galaxy-flag.explored{border-color:#b0e2ff}
+.galaxy-planet.is-locked::after{content:'';position:absolute;inset:8px 8px 28px;pointer-events:none;border-radius:50%;background:radial-gradient(circle at 16% 25%,#acb6d359,#5b68984a 49%,#121e4300 75%);filter:blur(8px)}
+.galaxy-mist{position:absolute;top:0;bottom:0;pointer-events:none;z-index:2;background:repeating-radial-gradient(ellipse 280px 165px at 45% 37%,#7b7ea522 0%,#748da01a 20%,#1b2a5500 54%,#51618a16 100%);opacity:.75;animation:galaxy-mist-drift 9s ease-in-out infinite alternate}
+.galaxy-footer{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px 20px;background:#091931;border-top:1px solid #80aaca52;color:#c6def5;font-size:clamp(9px,1.25vw,12px);font-weight:700}
+.galaxy-legend b{color:#a0ffe0}
+@keyframes planet-float{0%,100%{transform:translateY(1px)}50%{transform:translateY(-5px)}}
+@keyframes galaxy-mist-drift{from{transform:translateX(-12px);opacity:.52}to{transform:translateX(15px);opacity:.84}}
+.galaxy-card{position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;padding:16px;background:#020818c9;backdrop-filter:blur(7px)}
+.galaxy-card-inner{position:relative;display:flex;align-items:center;justify-content:center;gap:clamp(10px,3vw,34px);width:min(750px,96vw);max-height:96%;overflow-y:auto;background:linear-gradient(140deg,#162753,#0a1934 77%);border:1px solid #81dfeeb8;border-radius:23px;box-shadow:0 16px 60px #01030f; padding:clamp(16px,3vw,30px);text-align:left}
+#galaxy-card-portrait{width:clamp(120px,22vw,200px);height:clamp(120px,22vw,200px);flex-shrink:0;object-fit:contain}
+.galaxy-card-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.galaxy-card-stage{margin:0;color:#88ede8;font-weight:900;font-size:12px;letter-spacing:.16em}
+#galaxy-card-title{margin:0;color:#fff3d5;font-size:clamp(20px,3.5vw,32px);line-height:1.15}
+.galaxy-card-info{margin:0;font-size:clamp(11px,1.55vw,14px);color:#d5e6ff}
+.galaxy-card-progress{display:flex;flex-direction:column;gap:4px;padding:9px 0}
+.galaxy-card-progress p{margin:0;font-size:clamp(10px,1.4vw,13px);color:#e0ecff}
+.galaxy-card-actions{display:flex;gap:9px;flex-wrap:wrap}
+.galaxy-card-actions button{font-size:clamp(11px,1.5vw,14px);min-width:105px}
+.galaxy-card-close{position:absolute;top:9px;right:9px;width:31px;height:31px;border-radius:50%;border:1px solid #9ec6df;background:#192e51;color:white;z-index:1}
+@media(max-height:440px){.galaxy-header{min-height:44px;padding:5px 12px}.galaxy-eyebrow{display:none}.galaxy-footer{padding:4px 12px}.galaxy-card-inner{padding:12px 20px;max-height:98%}.galaxy-card-progress{gap:2px;padding:4px 0}}
+@media(max-width:640px){.galaxy-legend{font-size:9px}.galaxy-header{gap:6px}.galaxy-card-inner{gap:7px}#galaxy-card-portrait{width:100px;height:100px}.galaxy-card-actions button{padding:7px}}
+@media(prefers-reduced-motion:reduce){.galaxy-planet canvas,.galaxy-mist{animation:none}}
+
+/* Paisagens de viagem legíveis também em celulares horizontais mais baixos. */
+@media(max-height:450px){
+ .galaxy-planet{width:126px;min-height:133px}
+ .galaxy-planet canvas{width:112px;height:112px}
+ .galaxy-planet-name{margin-top:-5px;font-size:10px;padding:3px 6px}
+ .galaxy-flags{top:0;right:-2px}
+ .galaxy-flag{width:23px;height:23px;font-size:13px}
+}
+@media(max-width:700px){.galaxy-footer .galaxy-legend{display:none}}

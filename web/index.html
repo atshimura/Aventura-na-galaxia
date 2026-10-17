@@ -40,7 +40,7 @@
         <select id="stage-select" aria-label="Selecionar fase desbloqueada"><option value="1">1 · Nebulosa Aurora</option></select>
         <p class="stage-info" id="stage-info">Explore a primeira região da galáxia.</p>
         <button class="primary" id="start">🚀 JOGAR — FASE 1</button>
-        <div class="mode-actions"><button class="secondary" id="infinite">♾️ MODO INFINITO</button><button class="secondary" id="open-shop">🛍️ LOJA DE FOGUETES</button></div>
+        <div class="mode-actions"><button class="secondary" id="galaxy-open">🪐 MAPA DA GALÁXIA</button><button class="secondary" id="infinite">♾️ MODO INFINITO</button><button class="secondary" id="open-shop">🛍️ LOJA DE FOGUETES</button></div>
         <p class="stage-info" id="rocket-equipped">🚀 Aurora equipado</p>
         <label class="difficulty-label" for="difficulty">DIFICULDADE</label>
         <select id="difficulty"><option value="facil">🟢 Fácil</option><option selected value="normal">🟡 Normal</option><option value="dificil">🔴 Difícil</option></select>
@@ -48,7 +48,48 @@
       <div class="menu-footer"><span id="menu-wallet">🪙 0 moedas</span><span id="menu-best">🏆 Recorde: 0</span><span id="menu-infinite">♾️ 0</span><label class="sound-control">🎼 <input id="music-volume" aria-label="Volume da música" type="range" min="0" max="100" value="94"/></label>
         <label class="sound-control">🔊 <input id="effects-volume" aria-label="Volume dos efeitos" type="range" min="0" max="100" value="72"/></label>
         <button id="sound" class="muted-button">🔊 Som ligado</button></div>
-      <p class="tiny">Use o joystick à direita para pilotar e caminhar. Visite planetas com árvores e bichinhos, encontre cristais, compre novos foguetes na loja e desvie dos lasers alienígenas!</p>
+      <p class="tiny">Use o joystick direito para pilotar, o esquerdo para caminhar e o botão à direita para pular. Visite planetas com árvores e bichinhos, encontre cristais, compre novos foguetes na loja e desvie dos lasers alienígenas!</p>
+    </section>
+
+    <section id="galaxy-map" class="overlay hidden galaxy-screen" aria-labelledby="galaxy-title">
+      <header class="galaxy-header">
+        <div class="galaxy-heading">
+          <span class="galaxy-eyebrow">SUA JORNADA ENTRE AS ESTRELAS</span>
+          <h2 id="galaxy-title">✦ MAPA DA GALÁXIA</h2>
+        </div>
+        <button id="galaxy-close" class="secondary galaxy-back" type="button">⌂ VOLTAR AO MENU</button>
+      </header>
+      <div id="galaxy-viewport" class="galaxy-viewport" tabindex="0" aria-label="Mapa horizontal: deslize para explorar os vinte planetas">
+        <div id="galaxy-track" class="galaxy-track">
+          <canvas id="galaxy-route" width="4740" height="540" aria-hidden="true"></canvas>
+          <div id="galaxy-nodes" class="galaxy-nodes"></div>
+          <div id="galaxy-mist" class="galaxy-mist" aria-hidden="true"></div>
+        </div>
+      </div>
+      <footer class="galaxy-footer">
+        <span>← ARRASTE PARA EXPLORAR →</span>
+        <span class="galaxy-legend"><b>✓</b> Fase concluída &nbsp; <b>👣</b> Planeta explorado &nbsp; <b>🚀</b> Fase atual</span>
+      </footer>
+      <div id="galaxy-card" class="galaxy-card hidden" role="dialog" aria-modal="true" aria-labelledby="galaxy-card-title">
+        <div class="galaxy-card-inner">
+          <button id="galaxy-card-close" class="galaxy-card-close" type="button" aria-label="Fechar ficha do planeta">✕</button>
+          <canvas id="galaxy-card-portrait" width="200" height="200" aria-label="Ilustração do planeta"></canvas>
+          <div class="galaxy-card-copy">
+            <p id="galaxy-card-stage" class="galaxy-card-stage">FASE 1</p>
+            <h3 id="galaxy-card-title">PLANETA</h3>
+            <p id="galaxy-card-info" class="galaxy-card-info"></p>
+            <div class="galaxy-card-progress">
+              <p id="galaxy-card-status"></p>
+              <p id="galaxy-card-explored"></p>
+              <p id="galaxy-card-best"></p>
+            </div>
+            <div class="galaxy-card-actions">
+              <button id="galaxy-card-play" class="primary" type="button">🚀 JOGAR</button>
+              <button id="galaxy-card-return" class="secondary" type="button">VOLTAR AO MAPA</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
     <section id="shop" class="overlay hidden shop-screen" aria-labelledby="shop-title">
       <h2 id="shop-title">🛍️ GARAGEM GALÁCTICA</h2>
