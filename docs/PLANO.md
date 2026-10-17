@@ -45,3 +45,9 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - A versão 0.6.0 implementa **primeiro ciclo jogável de plataforma** com animação de pouso, desembarque, corrida, gravidade, salto, cristais, perigos, checkpoints, embarque e decolagem.
 - O joystick do foguete atua diretamente no quadro, reduzindo a latência percebida; novo arranjo instrumental e reguladores de volume individuais.
 - Refinamentos futuros: mais terrenos por planeta, colisão em plataformas elevadas, criaturas com comportamentos variados e ajustes finos do controle baseados em testes reais.
+
+## Revisão da progressão terrestre — v0.6.2
+- A primeira visita deve funcionar como tutorial acessível, com terreno plano, nenhum precipício e nenhuma ameaça nociva.
+- Os perigos aparecem de maneira cumulativa; primeiro obstáculo na fase 2, primeiro buraco curto na fase 3, outros nas fases 5, 7 e 9 e alargamento gradual, verificando alcance máximo do salto.
+- A cada planeta, preservar identidade específica do cenário, da flora/fauna e dos obstáculos. Diferenciar inclusive planetas com o mesmo bioma.
+- Manter exploração livre, checkpoints, garagem e progressão de voos.

@@ -13,9 +13,10 @@ function fresh(stage=1){
 function step(g,seconds){const times=Math.ceil(seconds/.05);for(let i=0;i<times;i++)g.update(Math.min(.05,seconds-i*.05));}
 function walk(){const g=fresh();step(g,2.25);assert.equal(g.state,'landed');g.leaveRocket();step(g,1.3);assert.equal(g.state,'walking');return g;}
 test('mundo tem terreno sólido, inclinações e precipícios',()=>{
- assert.ok(WORLD_LENGTH>2000);assert.equal(groundAt(550),null);
- assert.equal(isPit(200),false);assert.equal(isPit(1060),true);
- assert.ok(groundAt(200,'ice')<groundAt(200,'lava'));
+ assert.ok(WORLD_LENGTH>2000);assert.ok(groundAt(550,'aurora',1)!==null);
+ assert.equal(groundAt(550,'asteroids',3),null);
+ assert.equal(isPit(200,20),false);assert.equal(isPit(1070,5),true);
+ assert.ok(groundAt(400,'ice',4)<groundAt(400,'lava',4));
 });
 test('pouso só termina depois da animação e jogador continua sem cronômetro',()=>{
  const g=fresh();assert.equal(g.state,'landing');
@@ -46,7 +47,7 @@ test('salto aplica gravidade e somente pode repetir quando pousar',()=>{
  step(g,.1);assert.ok(g.astronaut.vy<0);assert.ok(g.astronaut.y<400);
  step(g,1.3);assert.equal(g.astronaut.onGround,true);assert.equal(g.jump(),true);
 });
-test('os quatro precipícios precisam ser atravessados saltando',()=>{
+test('salto permite superar trechos de terreno sem travar a caminhada',()=>{
  const g=walk();g.astronaut.x=520;
  g.astronaut.y=groundAt(520,g.planet.biome)-21;
  g.astronaut.onGround=true;assert.equal(g.jump(),true);
