@@ -157,12 +157,16 @@ function background(t){const theme=game.stage, bg=ctx.createLinearGradient(0,0,0
   for(const s of stars){const x=((s.x-t*s.speed)%WIDTH+WIDTH)%WIDTH;const alpha=.4+Math.sin(t*.002+s.phase)*.25;ctx.fillStyle=`rgba(218,246,255,${alpha})`;ctx.beginPath();ctx.arc(x,s.y,s.r,0,Math.PI*2);ctx.fill();if(s.glow>.95)glow(x,s.y,11,'#7de9fc44');}
 }
 function drawRocket(x,y,t,invincible=0,shield=false,docked=false){ctx.save();ctx.translate(x,y);if(invincible>0&&Math.floor(t/95)%2===0)ctx.globalAlpha=.48;
-  const thrust=docked?0:14+Math.sin(t/77)*8;const fire=ctx.createLinearGradient(-58,0,-12,0);fire.addColorStop(0,'#f65d42');fire.addColorStop(.4,'#ffa44a');fire.addColorStop(1,'#f7f4bd');ctx.fillStyle=fire;
+  const design=rocketById(game.rocketModel.id);
+  const thrust=docked?0:14+Math.sin(t/77)*8;const fire=ctx.createLinearGradient(-58,0,-12,0);fire.addColorStop(0,'#f65d42');fire.addColorStop(.4,design.engine);fire.addColorStop(1,'#f7f4bd');ctx.fillStyle=fire;
   if(!docked){ctx.beginPath();ctx.moveTo(-23,-11);ctx.quadraticCurveTo(-45,-8,-56-thrust,0);ctx.quadraticCurveTo(-42,8,-23,11);ctx.fill();}
-  ctx.fillStyle='#f95f94';ctx.beginPath();ctx.moveTo(-15,-9);ctx.lineTo(-36,-29);ctx.lineTo(7,-16);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(-15,9);ctx.lineTo(-36,29);ctx.lineTo(7,16);ctx.closePath();ctx.fill();
-  let body=ctx.createLinearGradient(0,-18,0,18);body.addColorStop(0,'#fbfcff');body.addColorStop(.55,'#b8e6ff');body.addColorStop(1,'#4e97dd');ctx.fillStyle=body;ctx.beginPath();ctx.moveTo(-33,-16);ctx.lineTo(17,-16);ctx.quadraticCurveTo(34,-7,43,0);ctx.quadraticCurveTo(34,7,17,16);ctx.lineTo(-33,16);ctx.closePath();ctx.fill();
+  ctx.fillStyle=design.accent;ctx.beginPath();ctx.moveTo(-15,-9);ctx.lineTo(-36,-29);ctx.lineTo(7,-16);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(-15,9);ctx.lineTo(-36,29);ctx.lineTo(7,16);ctx.closePath();ctx.fill();
+  let body=ctx.createLinearGradient(0,-18,0,18);body.addColorStop(0,'#fbfcff');body.addColorStop(.55,design.primary);body.addColorStop(1,'#4e97dd');ctx.fillStyle=body;ctx.beginPath();ctx.moveTo(-33,-16);ctx.lineTo(17,-16);ctx.quadraticCurveTo(34,-7,43,0);ctx.quadraticCurveTo(34,7,17,16);ctx.lineTo(-33,16);ctx.closePath();ctx.fill();
   ctx.strokeStyle='#77e9ff';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#173d85';ctx.beginPath();ctx.arc(5,-1,10,0,7);ctx.fill();ctx.fillStyle='#68eeff';ctx.beginPath();ctx.arc(4,-3,7,0,7);ctx.fill();ctx.fillStyle='#ecfffd';ctx.beginPath();ctx.arc(1,-6,2,0,7);ctx.fill();
-  ctx.fillStyle='#fd6c92';ctx.fillRect(-30,-13,10,26);
+  ctx.fillStyle=design.accent;ctx.fillRect(-30,-13,10,26);
+  if(design.id==='cometa'){ctx.fillStyle='#aaffff';ctx.fillRect(-14,-9,12,4);ctx.fillRect(-14,5,12,4);}
+  if(design.id==='flor'){ctx.fillStyle='#ffe7f9';ctx.beginPath();ctx.arc(-13,0,5,0,7);ctx.fill();}
+  if(design.id==='guardiao'){ctx.strokeStyle='#fff2bb';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-20,-19);ctx.lineTo(-8,-31);ctx.lineTo(12,-19);ctx.stroke();}
   if(shield){ctx.strokeStyle='#70eeff';ctx.lineWidth=4;ctx.shadowBlur=19;ctx.shadowColor='#39def9';ctx.beginPath();ctx.arc(0,0,43,0,7);ctx.stroke();}
   ctx.restore();}
 function asteroid(o){ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.rot);let gr=ctx.createLinearGradient(-o.r,-o.r,o.r,o.r);gr.addColorStop(0,'#e7b3a9');gr.addColorStop(.5,'#a2768a');gr.addColorStop(1,'#513d66');ctx.fillStyle=gr;ctx.strokeStyle='#ffb7a077';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<9;i++){const a=i*Math.PI*2/9,r=o.r*(.85+.15*Math.sin(i*7+o.id*20));const px=Math.cos(a)*r,py=Math.sin(a)*r;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#58466388';for(const [a,b,r] of [[-.3,-.2,.22],[.32,.23,.17],[-.23,.38,.12]]){ctx.beginPath();ctx.arc(o.r*a,o.r*b,o.r*r,0,7);ctx.fill();}ctx.restore();}
@@ -237,19 +241,42 @@ function station(t){
  if(game.dockingProgress>.82){ctx.fillStyle='#61fcbe';ctx.beginPath();ctx.arc(-119,-20,4,0,7);ctx.fill();}
  ctx.restore();
 }
+function laserBolt(o,t){
+ ctx.save();ctx.translate(o.x,o.y);ctx.shadowColor='#ff436f';ctx.shadowBlur=23;
+ ctx.lineCap='round';ctx.strokeStyle='#fa316c';ctx.lineWidth=12;
+ ctx.beginPath();ctx.moveTo(-16,0);ctx.lineTo(16,0);ctx.stroke();
+ ctx.strokeStyle='#fff2bd';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-17,0);ctx.lineTo(17,0);ctx.stroke();
+ ctx.fillStyle='#ffb2cf';ctx.beginPath();ctx.arc(-17,0,5,0,7);ctx.fill();ctx.restore();
+}
+function astronaut(x,y,t){
+ ctx.save();ctx.translate(x,y);const bounce=Math.sin(t/145)*1.6;
+ ctx.fillStyle='#001b3d66';ctx.beginPath();ctx.ellipse(0,14,19,6,0,0,7);ctx.fill();
+ ctx.strokeStyle='#234574';ctx.lineWidth=6;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(-7,6);ctx.lineTo(-10,16+bounce);ctx.moveTo(7,6);ctx.lineTo(10,16-bounce);ctx.stroke();
+ ctx.fillStyle='#dceeff';ctx.strokeStyle='#7b9ec7';ctx.lineWidth=2;
+ ctx.beginPath();ctx.roundRect(-11,-10,22,22,6);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#ffb763';ctx.beginPath();ctx.arc(0,-17,15,0,7);ctx.fill();
+ ctx.fillStyle='#ecf8ff';ctx.beginPath();ctx.arc(0,-17,16,Math.PI,Math.PI*2);ctx.lineTo(16,-17);ctx.arc(0,-17,16,0,Math.PI);ctx.fill();
+ ctx.fillStyle='#174e8b';ctx.beginPath();ctx.ellipse(0,-17,12,9,0,0,7);ctx.fill();
+ ctx.fillStyle='#7deaff';ctx.beginPath();ctx.ellipse(-4,-20,4,2,-.4,0,7);ctx.fill();
+ ctx.strokeStyle='#d5ecff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-9,-4);ctx.lineTo(-19,6+Math.sin(t/300)*2);ctx.moveTo(9,-4);ctx.lineTo(19,3);ctx.stroke();
+ ctx.fillStyle='#65f8dd';ctx.fillRect(-4,0,8,5);ctx.restore();
+}
 function render(t){
- const active=['playing','paused','docking','gameover','victory','exploring','naming'].includes(game.state);
+ const active=['playing','paused','docking','gameover','victory','exploring','walking','naming'].includes(game.state);
  const shift=active?game.distance:t*.04;
- if(['exploring','naming'].includes(game.state)||(game.state==='paused'&&game.pauseFrom==='exploring'))drawPlanetEnvironment(ctx,game,t);else background(shift);
+ if(['exploring','walking','naming'].includes(game.state)||(game.state==='paused'&&['exploring','walking'].includes(game.pauseFrom)))drawPlanetEnvironment(ctx,game,t);else background(shift);
  if(active){
    const fade=game.state==='docking'?Math.max(0,1-game.dockingProgress*2):1;
    ctx.save();ctx.globalAlpha=fade;
-   for(const o of game.objects){if(o.kind==='asteroid')asteroid(o);else if(o.kind==='satellite')satellite(o);else if(o.kind==='ship')ship(o);else if(o.kind==='coin')coin(o,t);else if(o.kind==='crate')crate(o,t);else if(o.kind==='gem')drawGem(ctx,o,t);else drawHazard(ctx,o,t);}
+   for(const o of game.objects){if(o.kind==='asteroid')asteroid(o);else if(o.kind==='satellite')satellite(o);else if(o.kind==='ship')ship(o);else if(o.kind==='coin')coin(o,t);else if(o.kind==='crate')crate(o,t);else if(o.kind==='gem')drawGem(ctx,o,t);else if(o.kind==='laser')laserBolt(o,t);else drawHazard(ctx,o,t);}
    ctx.restore();
    if(game.state==='playing')drawPlanetApproach(ctx,game,t);
    if(game.dockingProgress>0||game.state==='victory')station(t);
    const docked=game.state==='victory';
-   drawRocket(game.rocket.x,game.rocket.y+(docked?0:Math.sin(t/155)*2),t,docked?0:game.invincible,game.shield,docked);
+   if(game.state==='walking'||(game.state==='paused'&&game.pauseFrom==='walking')){
+     drawRocket(133,392,t,0,false,true);astronaut(game.astronaut.x,game.astronaut.y,t);
+   }else drawRocket(game.rocket.x,game.rocket.y+(docked?0:Math.sin(t/155)*2),t,docked?0:game.invincible,game.shield,docked);
    if(game.state==='playing'&&game.invincible>1.4){ctx.fillStyle='#fa537716';ctx.fillRect(0,0,WIDTH,HEIGHT);}
  }else drawRocket(190,330+Math.sin(t/400)*12,t);
 }
@@ -267,6 +294,7 @@ function loop(now){
    for(const event of game.events){
      if(event==='Moeda coletada!'||event==='Cristal coletado!'){dirty=true;audio.sound('pickup');}
      else if(event==='Colisão!')audio.sound('hit');
+     else if(event==='Laser alienígena!')audio.sound('laser');
      else if(['Escudo ativado!','Coração recuperado!','Invencibilidade!'].includes(event)){audio.sound('crate');toast(event);}
      else if(event==='Aproximação à estação espacial!'){resetSteering();audio.sound('dock');toast('🛰️ Aproximando da estação!');panels('playing');}
      else if(event==='Planeta explorado!'){dirty=true;resetSteering();audio.sound('win');$('planet-input').value=game.save.planetNames[game.stage.number]||'';$('planet-input').placeholder=`Nome para ${game.planet.name} (opcional)`;panels('planet-name');}
