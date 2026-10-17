@@ -22,5 +22,7 @@
 5. **Exploração:** planetas, nomes, regiões secretas, missões, diálogos e personagens.
 6. **Conteúdo final:** estação lendária, Galáxia das Maravilhas, 10 fases extras e testes ampliados.
 
+4. **v0.4.0 (concluída):** biomas e planos de fundo distintos para 20 planetas; novos perigos liberados progressivamente sem remover os anteriores; incursão pilotável de 16 segundos por planeta, cristais, nomeação e salvamento local. Testes automatizados e emulador Android aprovados.
+
 ## Testes futuros
 Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio, colisões, desempenho e persistência em celulares reais.

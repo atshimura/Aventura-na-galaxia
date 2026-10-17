@@ -1,27 +1,29 @@
-# Validação — v0.3.0 · Campanha de 20 fases
+# Relatório de validação — Aventura na Galáxia v0.4.0
 
-## Resultado final
-- **57 testes automatizados passaram, sem falhas**, na branch e na `main`.
-- `assembleDebug` via GitHub Actions (Android SDK 35, Gradle 8.9, Java 17): **aprovado**.
-- **Instalação e abertura no emulador Android 35**: aprovada na execução oficial da `main`, com processo vivo, captura de tela limpa e sem erro fatal nem ANR específico do aplicativo.
-- APK `versionName=0.3.0`, `versionCode=3`, build de debug.
-- Captura de tela verificada: seletor de fase, título, botão de jogar, dificuldade e indicadores visíveis.
-- Execução CI final: https://github.com/atshimura/Aventura-na-galaxia/actions/runs/38980977195.
-- Código integrado pelo [PR #2](https://github.com/atshimura/Aventura-na-galaxia/pull/2).
+## Entrega
+- Pull request integrado: https://github.com/atshimura/Aventura-na-galaxia/pull/3
+- Commit da main: `1fdcf91b320008dc0fa44188e9f0301d90a694dd`
+- GitHub Actions main: https://github.com/atshimura/Aventura-na-galaxia/actions/runs/38984060191
+- Android `versionCode 4`, `versionName 0.4.0`; APK de debug.
 
-## Funcionalidades implementadas
-1. Aventura com 20 fases nomeadas: dificuldade e duração progressivas.
-2. Obstáculos com cinco padrões de movimento introduzidos em níveis progressivos.
-3. Paletas e aparência de cenário por fase, com variação dos planetas.
-4. Seleção de fases desbloqueadas, avanço após o acoplamento e repetição da fase.
-5. Salvamento automático de progresso, recordes, moedas e corações entre estações, com conserto de 25 moedas por coração.
-6. Descoberta da Galáxia das Maravilhas registrada após a fase 20. O conteúdo secreto será implementado futuramente.
-7. Música e joystick da v0.2.0 preservados.
+## Validação concluída
+- **71 testes Node aprovados (0 falhas).** Incluem progressão, tipos cumulativos de obstáculos, vinte planetas, salvamento e compatibilidade com dados antigos, colisões, controles, cristal com recompensa, relógio pausado ao explorar, nomeação e retorno à estação.
+- **Compilação assembleDebug aprovada** com Gradle e Android SDK pelo GitHub Actions.
+- **Teste de instalação e abertura no emulador Android 35 aprovado** na branch do PR e na main. Captura de tela e logcat armazenados como artefatos.
+- O APK gerado contém os arquivos `world.mjs`, `world-render.mjs`, `core.mjs`, `main.mjs`, `music.mjs`, CSS e HTML.
 
-## Testes pendentes
-- Jogabilidade real com toque no celular: velocidade/precisão do joystick, colisões e alternância entre fases.
-- Testes de longa duração e desempenho com muitas moedas/obstáculos.
-- Balanceamento de dificuldade com jogadores, principalmente nos níveis avançados.
-- Modo Infinito, novas missões, exploração livre e fases secretas ainda não implementados.
+## Funcionalidade nova
+- Vinte planetas próprios com paisagens de gelo, floresta, lava, deserto, oceano, cristais, cidades, ruínas, portais etc.
+- Planeta opcional surge durante a travessia da fase e pode ser visitado usando botão dedicado.
+- Na visita, o tempo orbital congela; o foguete explora um trecho lateral de ~16s com obstáculos do bioma e cristais que rendem 3 moedas.
+- A visita permite nomear o planeta (opcional). Registro do planeta descoberto e seu nome persistem localmente.
+- Obstáculos cumulativos: asteroides, satélites, naves, destroços, cometas, minas, plasma, drones, cristais perigosos e vórtices.
 
-**Observação:** as fases desta versão variam em cores, parâmetros de desafio e trajetórias dos obstáculos; não são vinte níveis ilustrados manualmente com personagens e histórias próprios. Essas experiências serão expandidas em futuras versões.
+## Limites de validação
+- O emulador confirma instalação e abertura, mas **não testou manualmente cada uma das 20 fases em tela real**.
+- Os testes do fluxo jogável são simulações automatizadas de interface e lógica, não uma sessão com toque e áudio em aparelho físico.
+- A exploração de planetas é uma primeira incursão lateral opcional; **livre circulação entre planetas, conversas com alienígenas, missões secundárias e Galáxia das Maravilhas não estão implementadas nesta versão**.
+- O APK usa assinatura de depuração que pode diferir de versões anteriores. Se a atualização exigir desinstalação, os dados locais poderão ser perdidos.
+
+## Próximos testes recomendados
+Jogar em um aparelho Android: experimentar botão EXPLORAR PLANETA, tempo de incursão, joystick, coleta e nomeação; verificar dificuldade e legibilidade em telas pequenas.
