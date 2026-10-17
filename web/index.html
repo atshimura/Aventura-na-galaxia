@@ -38,7 +38,9 @@
         <label class="difficulty-label" for="difficulty">DIFICULDADE</label>
         <select id="difficulty"><option value="facil">🟢 Fácil</option><option selected value="normal">🟡 Normal</option><option value="dificil">🔴 Difícil</option></select>
       </div>
-      <div class="menu-footer"><span id="menu-wallet">🪙 0 moedas</span><span id="menu-best">🏆 Recorde: 0</span><span id="menu-infinite">♾️ 0</span><button id="sound" class="muted-button">🔊 Som ligado</button></div>
+      <div class="menu-footer"><span id="menu-wallet">🪙 0 moedas</span><span id="menu-best">🏆 Recorde: 0</span><span id="menu-infinite">♾️ 0</span><label class="sound-control">🎼 <input id="music-volume" aria-label="Volume da música" type="range" min="0" max="100" value="94"/></label>
+        <label class="sound-control">🔊 <input id="effects-volume" aria-label="Volume dos efeitos" type="range" min="0" max="100" value="72"/></label>
+        <button id="sound" class="muted-button">🔊 Som ligado</button></div>
       <p class="tiny">Use o joystick à direita para pilotar e caminhar. Visite planetas com árvores e bichinhos, encontre cristais, compre novos foguetes na loja e desvie dos lasers alienígenas!</p>
     </section>
     <section id="shop" class="overlay hidden shop-screen" aria-labelledby="shop-title">

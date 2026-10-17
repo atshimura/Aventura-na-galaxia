@@ -195,7 +195,11 @@ class GameState {
     const moved=moveAstronaut(this.astronaut,this.walkAxis,dt,this.planet.biome,this.stage.number);
     this.walkingDistance+=Math.abs(this.astronaut.vx)*dt;
     updatePlanetObjects(this.surface.objects,this.planetElapsed,this.planet.biome,this.stage.number);
-    if(moved.fell){this.damageAstronaut();return;}
+    if(moved.fell){
+      if(this.invincible>0)respawnAstronaut(this.astronaut,this.checkpointX,this.planet.biome,this.stage.number);
+      else this.damageAstronaut();
+      return;
+    }
     for(const obj of this.surface.objects){
       if(obj.kind==='gem'&&!obj.collected&&collision(this.astronaut,obj)){
         obj.collected=true;this.score+=3;this.save.wallet+=3;this.save.best=Math.max(this.save.best,this.score);

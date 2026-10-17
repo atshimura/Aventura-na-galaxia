@@ -27,6 +27,15 @@ function configureStageSelect(){
 $('stage-select').addEventListener('change',e=>{selectedStage=Number(e.target.value);configureStageSelect();});
 let toastTimeout=0,framePrevious=0,displayMode='menu';
 const audio=new SpaceAudio(window);
+const volumeSetting={music:94,effects:72};
+function bindVolume(id,type){
+ const el=$(id);el.addEventListener('input',e=>{
+   const v=Number(e.target.value)/100;volumeSetting[type]=Math.round(v*100);
+   if(type==='music')audio.setVolume(v);else audio.setEffectsVolume(v);
+ });
+}
+bindVolume('music-volume','music');bindVolume('effects-volume','effects');
+
 let steeringPointer=null,steering={x:0,y:0},keys=new Set();
 const stick=$('joystick'),knob=$('joystick-knob');
 function resetSteering(){steeringPointer=null;steering={x:0,y:0};knob.style.transform='translate(-50%,-50%)';game.stopSteering();}
