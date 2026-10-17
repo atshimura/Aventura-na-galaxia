@@ -2,6 +2,7 @@
 /** Aventura na Galáxia: regras independentes do navegador. */
 import {getPlanet,PLANET_SECONDS,planetVisible,chooseHazard,planetObstacleForBiome} from './world.mjs';
 import {rocketById,sanitizeRockets,DEFAULT_ROCKET,purchase,equip} from './rockets.mjs';
+import {WORLD_LENGTH,FLIGHT_PAD_X,groundAt,createPlanetLevel,newAstronaut,jumpAstronaut,moveAstronaut,collision,updatePlanetObjects,respawnAstronaut,canBoard} from './platformer.mjs';
 const HAZARD_RADIUS={asteroid:29,satellite:35,ship:30,debris:24,comet:27,mine:28,plasma:31,drone:30,crystal:26,vortex:31};
 const WIDTH = 960;
 const HEIGHT = 540;
@@ -91,50 +92,69 @@ class GameState {
     this.planetElapsed=0;this.planetDuration=PLANET_SECONDS;this.planetVisited=false;this.planetObstacleTimer=0;this.planetCoinTimer=0;
     this.astronaut={x:165,y:402,r:14};this.footTarget={x:165,y:402};this.walkingDistance=0;
     this.infiniteLevel=1;this.lasersFired=0;
+    this.walkAxis=0;this.surface={objects:[]};this.cameraX=0;this.checkpointX=FLIGHT_PAD_X+38;
+    this.transitionProgress=0;this.transitionElapsed=0;this.transitionDuration=0;
   }
   start(){this.state='playing';this.elapsed=0;this.distance=0;this.score=0;this.hearts=this.mode==='infinite'?3:this.save.heartReserve;
     this.rocket={x:153,y:HEIGHT/2,r:21};this.target={x:153,y:HEIGHT/2};
     this.objects=[];this.invincible=1.6;this.shield=this.rocketModel.shield;this.obstacleTimer=1.5;this.coinTimer=0.65;
     this.crateTimer=11;this.events=[];this.dockingProgress=0;this.dockStart=null;this.pauseFrom='playing';this.planetElapsed=0;this.planetVisited=false;this.planetObstacleTimer=1.5;this.planetCoinTimer=.6;
     this.astronaut={x:165,y:402,r:14};this.footTarget={x:165,y:402};this.walkingDistance=0;this.infiniteLevel=1;this.lasersFired=0;
+    this.walkAxis=0;this.surface={objects:[]};this.cameraX=0;this.checkpointX=FLIGHT_PAD_X+38;
+    this.transitionProgress=0;this.transitionElapsed=0;this.transitionDuration=0;
   }
   setTarget(x,y){this.target.x=clamp(x,64,430);this.target.y=clamp(y,62,HEIGHT-60);}
   steer(direction,dt){
     if(!['playing','exploring','walking'].includes(this.state))return;
-    const seconds=clamp(dt,0,.05),speed=365*this.rocketModel.control;
+    const seconds=clamp(dt,0,.05);
     if(this.state==='walking'){
-      this.footTarget.x=clamp(this.footTarget.x+direction.x*seconds*195,68,438);
-      this.footTarget.y=clamp(this.footTarget.y+direction.y*seconds*195,310,462);return;
+      this.walkAxis=clamp(direction.x,-1,1);
+      return;
     }
-    this.setTarget(this.target.x+direction.x*speed*seconds,this.target.y+direction.y*speed*seconds);
+    // Joystick movimenta a nave no próprio quadro: sem perseguir um alvo atrasado.
+    const speed=420*this.rocketModel.control;
+    this.rocket.x=clamp(this.rocket.x+direction.x*speed*seconds,64,430);
+    this.rocket.y=clamp(this.rocket.y+direction.y*speed*seconds,62,HEIGHT-60);
+    this.target.x=this.rocket.x;this.target.y=this.rocket.y;
   }
   stopSteering(){
-    if(this.state==='walking'){this.footTarget={x:this.astronaut.x,y:this.astronaut.y};return;}
-    if(this.state==='playing'||this.state==='exploring')this.setTarget(this.rocket.x,this.rocket.y);
+    this.walkAxis=0;
+    if(this.state==='playing'||this.state==='exploring')
+      this.setTarget(this.rocket.x,this.rocket.y);
   }
-  pause(){if(['playing','exploring','walking','docking'].includes(this.state)){this.pauseFrom=this.state;this.state='paused';}}
+  pause(){
+    if(['playing','exploring','landing','landed','disembarking','walking','boarding','takeoff','docking'].includes(this.state)){
+      this.pauseFrom=this.state;this.state='paused';
+    }
+  }
   resume(){if(this.state==='paused')this.state=this.pauseFrom;}
   canExplorePlanet(){return this.mode==='adventure'&&this.state==='playing'&&!this.planetVisited&&planetVisible(this.elapsed,this.duration);}
+  startTransition(state,duration){
+    this.state=state;this.transitionElapsed=0;this.transitionProgress=0;this.transitionDuration=duration;
+  }
   leaveRocket(){
-    if(this.state!=='exploring')return false;
-    this.state='walking';this.rocket={x:133,y:392,r:21};this.astronaut={x:169,y:389,r:14};
-    this.footTarget={x:this.astronaut.x,y:this.astronaut.y};this.objects=[];
-    this.planetObstacleTimer=1.3;this.planetCoinTimer=.5;
-    this.invincible=Math.max(1.2,this.invincible);
-    this.events.push('Astronauta desembarcou!');return true;
+    if(this.state!=='landed')return false;
+    this.startTransition('disembarking',1.25);
+    this.events.push('Escotilha aberta!');return true;
+  }
+  jump(){
+    if(this.state!=='walking')return false;
+    return jumpAstronaut(this.astronaut);
   }
   boardRocket(){
-    if(this.state!=='walking')return false;
-    this.state='exploring';this.objects=[];this.target={x:this.rocket.x,y:this.rocket.y};
-    this.invincible=Math.max(1.2,this.invincible);this.events.push('Astronauta embarcou!');return true;
+    if(this.state!=='walking'||!canBoard(this.astronaut))return false;
+    this.walkAxis=0;this.startTransition('boarding',1);
+    this.events.push('Voltando para o foguete!');return true;
   }
   buyRocket(id){return purchase(this.save,id);}
   equipRocket(id){if(!equip(this.save,id))return false;this.rocketModel=rocketById(id);return true;}
   enterPlanet(){
     if(!this.canExplorePlanet())return false;
-    this.state='exploring';this.planetElapsed=0;this.planetObstacleTimer=1.5;this.planetCoinTimer=.6;
-    this.objects=[];this.invincible=Math.max(1.8,this.invincible);this.target={x:153,y:240};
-    this.events.push('Exploração iniciada!');return true;
+    this.planetElapsed=0;this.objects=[];this.invincible=Math.max(1.8,this.invincible);
+    this.surface={objects:createPlanetLevel(this.stage.number,this.planet.biome)};
+    this.astronaut=newAstronaut(this.planet.biome,this.stage.number);
+    this.checkpointX=this.astronaut.x;this.walkAxis=0;this.startTransition('landing',2.2);
+    this.events.push('Iniciando pouso planetário!');return true;
   }
   finishPlanet(){
     this.state='naming';this.objects=[];this.planetVisited=true;
@@ -148,11 +168,45 @@ class GameState {
     this.state='playing';this.objects=[];this.obstacleTimer=1.8;this.coinTimer=.5;
     this.invincible=Math.max(2,this.invincible);this.events.push('Retorno ao espaço!');return true;
   }
-  spawnPlanetObstacle(){
-    this.objects.push({kind:'planet-hazard',style:planetObstacleForBiome(this.planet.biome),
-      x:WIDTH+60,y:this.state==='walking'?this.randomRange(345,448):this.randomRange(125,385),
-      r:this.state==='walking'?this.randomRange(16,22):this.randomRange(28,35),
-      rot:this.randomRange(0,Math.PI*2)});
+  damageAstronaut(){
+    if(this.invincible>0)return;
+    if(this.shield){this.shield=0;this.invincible=1.1;this.events.push('Escudo protegeu!');return;}
+    this.hearts--;this.events.push('Astronauta machucado!');
+    if(this.hearts<=0){this.hearts=3;this.events.push('Reapareceu no ponto de salvamento!');}
+    this.invincible=1.6;
+    respawnAstronaut(this.astronaut,this.checkpointX,this.planet.biome,this.stage.number);
+    this.walkAxis=0;
+  }
+  updateOnPlanet(dt){
+    if(this.state==='landing'||this.state==='disembarking'||this.state==='boarding'||this.state==='takeoff'){
+      this.transitionElapsed+=dt;
+      this.transitionProgress=clamp(this.transitionElapsed/this.transitionDuration,0,1);
+      if(this.transitionProgress>=1){
+        if(this.state==='landing'){this.state='landed';this.events.push('Pouso concluído!');}
+        else if(this.state==='disembarking'){this.state='walking';this.events.push('Astronauta desembarcou!');}
+        else if(this.state==='boarding'){this.startTransition('takeoff',2);this.events.push('Iniciando decolagem!');}
+        else {this.finishPlanet();}
+      }
+      return;
+    }
+    if(this.state==='landed')return;
+    if(this.state!=='walking')return;
+    this.planetElapsed+=dt;this.invincible=Math.max(0,this.invincible-dt);
+    const moved=moveAstronaut(this.astronaut,this.walkAxis,dt,this.planet.biome,this.stage.number);
+    this.walkingDistance+=Math.abs(this.astronaut.vx)*dt;
+    updatePlanetObjects(this.surface.objects,this.planetElapsed,this.planet.biome,this.stage.number);
+    if(moved.fell){this.damageAstronaut();return;}
+    for(const obj of this.surface.objects){
+      if(obj.kind==='gem'&&!obj.collected&&collision(this.astronaut,obj)){
+        obj.collected=true;this.score+=3;this.save.wallet+=3;this.save.best=Math.max(this.save.best,this.score);
+        this.events.push('Cristal coletado!');
+      }else if(obj.kind==='checkpoint'&&collision(this.astronaut,obj)){
+        if(!obj.active){this.surface.objects.filter(o=>o.kind==='checkpoint').forEach(o=>o.active=false);obj.active=true;
+          this.checkpointX=obj.x;this.events.push('Ponto de salvamento ativado!');}
+      }else if((obj.kind==='hazard'||obj.kind==='animal'&&!obj.friendly)&&collision(this.astronaut,obj)){
+        this.damageAstronaut();break;
+      }
+    }
   }
   startDocking(){
     this.state='docking';this.dockingProgress=0;
@@ -234,37 +288,17 @@ class GameState {
     if(this.mode==='infinite'&&this.score>this.save.bestInfinite)this.save.bestInfinite=this.score;
   }
   update(delta){
-    if(!['playing','exploring','walking','docking'].includes(this.state))return;
+    if(!['playing','exploring','landing','landed','disembarking','walking','boarding','takeoff','docking'].includes(this.state))return;
     const dt=clamp(delta,0,.05);this.events=[];
     if(this.state==='docking'){this.updateDocking(dt);return;}
-    const k=Math.min(1,12*dt);
-    if(this.state==='walking'){
-      this.astronaut.x+=(this.footTarget.x-this.astronaut.x)*k;
-      this.astronaut.y+=(this.footTarget.y-this.astronaut.y)*k;
-      this.walkingDistance+=dt;
-    }else{
-      this.rocket.x+=(this.target.x-this.rocket.x)*k;
-      this.rocket.y+=(this.target.y-this.rocket.y)*k;
+    if(['landing','landed','disembarking','walking','boarding','takeoff'].includes(this.state)){
+      this.updateOnPlanet(dt);return;
     }
+    const k=Math.min(1,Math.max(.75,30*dt));
+    this.rocket.x+=(this.target.x-this.rocket.x)*k;
+    this.rocket.y+=(this.target.y-this.rocket.y)*k;
     this.invincible=Math.max(0,this.invincible-dt);
-    if(this.state==='exploring'||this.state==='walking'){
-      this.planetElapsed+=dt;this.distance+=this.config.speed*dt*.4;
-      this.planetObstacleTimer-=dt;this.planetCoinTimer-=dt;
-      if(this.planetObstacleTimer<=0){this.spawnPlanetObstacle();this.planetObstacleTimer+=1.45;}
-      if(this.planetCoinTimer<=0){
-        this.spawnCoin('gem');
-        if(this.state==='walking'){
-          const gem=this.objects[this.objects.length-1];
-          if(gem?.kind==='gem')gem.y=this.randomRange(335,442);
-        }
-        this.planetCoinTimer+=1.05;
-      }
-      this.moveObjects(dt,true);
-      if(['exploring','walking'].includes(this.state)&&this.planetElapsed>=this.planetDuration){
-        this.planetElapsed=this.planetDuration;this.finishPlanet();
-      }
-      return;
-    }
+    if(this.state==='exploring')return;
     this.elapsed+=dt;this.distance+=this.config.speed*dt;
     if(this.mode==='infinite'){
       this.infiniteLevel=Math.min(TOTAL_STAGES,Math.floor(this.elapsed/30)+1);
