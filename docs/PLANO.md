@@ -77,3 +77,11 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Cada fase será representada por **uma ilustração própria do planeta correspondente**, aproveitando as identidades visuais dos 20 planetas já existentes; não usar círculos genéricos numerados como principal representação.
 - Os elementos de progresso (concluída, atual/disponível, bloqueada, explorada) devem ser definidos visualmente sem confundir a conclusão espacial da fase com a exploração de seu planeta.
 - Ainda falta decidir a interação ao tocar um planeta e detalhes finos do desenho. **Nenhuma implementação autorizada.**
+
+
+### Decisão confirmada — interação com os planetas no mapa
+- **Opção A confirmada:** tocar em um planeta no Mapa da Galáxia abre uma **ficha do planeta**, e não inicia imediatamente a fase.
+- A ficha apresentará **ilustração ampliada própria do planeta**, nome, número da fase, **melhor pontuação**, indicador de fase concluída e indicador separado de **planeta já explorado**.
+- Para planetas desbloqueados haverá botão **JOGAR**, que inicia a fase escolhida a partir da ficha.
+- O tratamento de planetas bloqueados e a apresentação visual detalhada da rota ainda serão definidos nas próximas decisões.
+- **Somente especificação de produto registrada. Não implementar o mapa ou alterar o aplicativo até nova autorização expressa.**
