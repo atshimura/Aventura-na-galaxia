@@ -116,7 +116,7 @@ test('astronauta volta ao foguete sem reiniciar planeta',()=>{
 });
 test('caminhada também termina com nomeação do planeta',()=>{
  const g=make();g.start();g.elapsed=g.duration*.4;g.enterPlanet();g.leaveRocket();
- g.moveObjects=()=>{};g.spawnPlanetObstacle=()=>{};g.spawnCoin=()=>{};
+ g.moveObjects=()=>{};g.spawnPlanetObstacle=()=>{};
  for(let i=0;i<335;i++)g.update(.05);
  assert.equal(g.state,'naming');assert.equal(g.save.exploredPlanets[1],true);
 });

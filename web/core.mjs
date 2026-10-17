@@ -253,7 +253,10 @@ class GameState {
       if(this.planetObstacleTimer<=0){this.spawnPlanetObstacle();this.planetObstacleTimer+=1.45;}
       if(this.planetCoinTimer<=0){
         this.spawnCoin('gem');
-        if(this.state==='walking')this.objects[this.objects.length-1].y=this.randomRange(335,442);
+        if(this.state==='walking'){
+          const gem=this.objects[this.objects.length-1];
+          if(gem?.kind==='gem')gem.y=this.randomRange(335,442);
+        }
         this.planetCoinTimer+=1.05;
       }
       this.moveObjects(dt,true);
