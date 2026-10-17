@@ -134,3 +134,13 @@
 @media(max-height:440px){.galaxy-header{min-height:44px;padding:5px 12px}.galaxy-eyebrow{display:none}.galaxy-footer{padding:4px 12px}.galaxy-card-inner{padding:12px 20px;max-height:98%}.galaxy-card-progress{gap:2px;padding:4px 0}}
 @media(max-width:640px){.galaxy-legend{font-size:9px}.galaxy-header{gap:6px}.galaxy-card-inner{gap:7px}#galaxy-card-portrait{width:100px;height:100px}.galaxy-card-actions button{padding:7px}}
 @media(prefers-reduced-motion:reduce){.galaxy-planet canvas,.galaxy-mist{animation:none}}
+
+/* Paisagens de viagem legíveis também em celulares horizontais mais baixos. */
+@media(max-height:450px){
+ .galaxy-planet{width:126px;min-height:133px}
+ .galaxy-planet canvas{width:112px;height:112px}
+ .galaxy-planet-name{margin-top:-5px;font-size:10px;padding:3px 6px}
+ .galaxy-flags{top:0;right:-2px}
+ .galaxy-flag{width:23px;height:23px;font-size:13px}
+}
+@media(max-width:700px){.galaxy-footer .galaxy-legend{display:none}}
