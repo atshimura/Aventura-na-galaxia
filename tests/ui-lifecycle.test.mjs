@@ -34,7 +34,7 @@ test('interface completa: voo, visita, nomeação, retorno e estacionamento',asy
  assert.equal(game.state,'naming');
  node('planet-input').value='Cometa Azul';events.get('name-planet:click')();
  assert.equal(game.state,'playing');assert.equal(game.save.planetNames[1],'Cometa Azul');
- game.elapsed=game.duration-8-.02;frame(305);assert.equal(game.state,'docking');
- game.elapsed=game.duration-.01;frame(355);assert.equal(game.state,'victory');
+ game.elapsed=game.duration-8-.02;frame(7350);assert.equal(game.state,'docking');
+ game.elapsed=game.duration-.01;frame(7400);assert.equal(game.state,'victory');
  assert.equal(game.save.completed,1);assert.equal(game.save.exploredPlanets[1],true);
 });
