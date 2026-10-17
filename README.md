@@ -110,3 +110,13 @@ Para desenvolver: loja, missões, diálogos e conteúdo especial da galáxia sec
 - **20 cenários visualmente diferenciados** por paisagens próprias: cortinas de aurora, crateras de asteroides, pináculos gelados, árvores gigantes, portais, vulcões, vales de cristais, dunas, ilhas oceânicas, cidades iluminadas, jardins suspensos, ruínas, cânions, cachoeiras, corais, grandes anéis, tempestades elétricas, luas gêmeas, pontes de estrelas e templos dourados.
 - Mundos do mesmo bioma têm cenários diferentes, como florestas gigantes versus jardins suspensos, oceanos flutuantes versus cachoeiras e cidades tecnológicas versus templos.
 - Mantêm-se os controles v0.6.1: joystick terrestre à esquerda, salto à direita e exploração sem limite de tempo.
+
+## Versão 0.6.3 — Mapa da Galáxia e cenário do menu
+- O seletor original permanece no menu; quando o jogador muda a fase, a tela principal passa a desenhar o **próprio cenário do planeta selecionado**, com transição suave de 430 ms.
+- Novo botão **MAPA DA GALÁXIA**, adicional à seleção existente.
+- Mapa horizontal com os 20 planetas ilustrados individualmente e conectados por um caminho irregular. O deslocamento é feito por toque e rolagem lateral nativa; abre centralizado na fase mais avançada desbloqueada.
+- A névoa cobre fases bloqueadas e desaparece assim que cada fase é desbloqueada, independentemente da exploração.
+- Fase concluída (✓) e planeta explorado (👣) recebem símbolos diferentes; foguete (🚀) destaca a fase atual.
+- Ao tocar num planeta, uma ficha se abre sobre o mapa. Planetas desbloqueados exibem ilustração ampliada, nome, descrição, recorde e botão JOGAR; bloqueados preservam nome e ilustração ocultos, mostrando apenas silhueta, número e regra de desbloqueio.
+- Fechar a ficha mantém a posição de rolagem do mapa. Navegação por teclado: setas para deslocar e Escape para fechar ficha ou mapa.
+- Tudo funciona offline; sem novas bibliotecas ou servidores. Progresso e nomes aproveitam o salvamento local anterior.

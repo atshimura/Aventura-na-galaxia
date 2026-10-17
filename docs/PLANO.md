@@ -109,3 +109,10 @@ Ampliar testes de jogabilidade automatizados no Android e validar toque, áudio,
 - Respeitar os limites do mapa nas extremidades, sem tentar centralizar fora da área navegável.
 - **Estado de projeto:** falta apenas consolidar detalhes de apresentação do progresso (indicação visual separada para fase concluída versus planeta explorado) e comportamentos de interface; definir preferencialmente com padrões de projeto simples, sem novas rodadas extensas de perguntas.
 - **A implementação continua expressamente não autorizada até confirmação do usuário. Esta mudança altera apenas a documentação.**
+
+## Entrega v0.6.3 — Menu com fundo dinâmico e Mapa da Galáxia (IMPLEMENTADO)
+- Implementação da prévia fiel ao cenário do planeta selecionado **no seletor já existente**, com transição suave e preservação do conteúdo do menu.
+- Implementação do mapa horizontal adicional, com 20 planetas desenhados, rota sinuosa, névoa sobre destinos bloqueados, rolagem lateral e centralização da fase mais avançada desbloqueada.
+- Fichas ilustradas, bloqueio de informações de destinos futuros, botão JOGAR somente quando autorizado, fechar com retorno à mesma posição e símbolos independentes de fase concluída / planeta explorado.
+- Animações decorativas discretas com respeito à preferência do sistema por movimento reduzido.
+- Aplicação mantém a estrutura de dados do salvamento original. Testes automatizados adicionados à suite.
