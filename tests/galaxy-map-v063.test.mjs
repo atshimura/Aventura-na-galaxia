@@ -119,7 +119,7 @@ test('fluxo real do mapa: abrir, consultar fase bloqueada, explorar ficha, inici
  assert.equal(points.length,20);
  assert.equal(node('galaxy-viewport').scrollLeft,mapStartScroll(save,960));
  const future=points[4],known=points[1];
- assert.ok(future.classList.contains('is-locked'));
+ assert.ok(future.className.includes('is-locked'))
  future.listeners.get('click')();
  assert.equal(node('galaxy-card-title').textContent,'MUNDO DESCONHECIDO');
  assert.equal(node('galaxy-card-play').classList.contains('hidden'),true);

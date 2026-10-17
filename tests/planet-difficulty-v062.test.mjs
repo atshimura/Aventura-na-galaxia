@@ -107,7 +107,7 @@ test('arquivos visuais realmente trazem motivos únicos para vinte planetas',()=
  for(let stage=1;stage<=20;stage++)assert.ok(v.includes('case '+stage+':'));
  assert.match(v,/drawGroundDecoration/);
 });
-test('versão Android identificada como 0.6.2',()=>{
+test('versão Android identificada como 0.6.3',()=>{
  const s=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(s,/versionCode 9/);assert.match(s,/versionName '0.6.2'/);
+ assert.match(s,/versionCode 9/);assert.match(s,/versionName '0.6.3'/);
 });
