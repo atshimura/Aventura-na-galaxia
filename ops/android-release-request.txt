@@ -1,4 +1,4 @@
 versionCode=11
 release=0.6.5
-attempt=2
-reason=Solicitacao de APK Release assinado, com validacao do gatilho corrigida; nao desinstalar APK 0.6.4 sem migrar os dados.
+attempt=3
+reason=Reexecutar assinatura permanente apos cadastro da variavel publica AVENTURA_CERT_SHA256; preservar chave e dados.
