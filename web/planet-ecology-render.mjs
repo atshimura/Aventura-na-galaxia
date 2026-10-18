@@ -166,6 +166,11 @@ export function drawPlanetCreature(c,o,time=0){
  if(v%3===2){for(const xx of [-9,9])stroke(c,[[xx,-12],[xx,-23]],a,2);}
  if(o.hostile){stroke(c,[[-17,20],[-7,23],[6,23],[18,20]],'#ffad7d',2);}
  if(o.reaction==='startled')star(c,23,-22,5,4,'#fff2a7');
+ if(o.reaction==='alert'){
+  // Aviso visível enquanto o predador camuflado emerge e ainda não causa dano.
+  c.globalAlpha=1;star(c,19,-27,7,5,'#fff3a0');
+  stroke(c,[[19,-31],[19,-24]],'#7e4664',2);
+ }
  if(o.reaction==='chasing')stroke(c,[[-22,-20],[0,-25],[22,-20]],'#ffc37b',2);
  c.restore();
 }
@@ -217,7 +222,6 @@ export function drawPlanetObstacle(c,o,time=0){
    shape(c,[[-29,15],[-24,5],[23,5],[29,15]],p,a);
    stroke(c,[[-12,5],[-2,12],[7,6],[15,15]],'#fff1a0',3);break;
   }
-  case 'cactus':break;
   case 'tornado':{
    for(let i=0;i<4;i++)oval(c,s*6,12-i*11,21-i*4,4,i%2?a:p);
    break;
