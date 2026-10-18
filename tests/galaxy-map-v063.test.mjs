@@ -69,7 +69,7 @@ test('interface contém ficha e névoa separada de fases exploradas',()=>{
 });
 test('Android usa versão 0.6.5',()=>{
  const gradle=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(gradle,/versionCode 11/);assert.match(gradle,/versionName '0.6.5'/);
+ assert.match(gradle,/versionCode 12/);assert.match(gradle,/versionName '0.6.5'/);
 });
 test('fluxo real do mapa: abrir, consultar fase bloqueada, explorar ficha, iniciar fase',async()=>{
  const byId=new Map(),events=new Map();
