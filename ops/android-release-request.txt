@@ -1,4 +1,4 @@
 versionCode=11
 release=0.6.5
-attempt=4
-reason=Validar assinatura, pacote e versao por apkanalyzer; executar instalacao e publicar APK verificado.
+attempt=5
+reason=Retestar release com validacao de metadados apkanalyzer e teste de regressao atualizado.
