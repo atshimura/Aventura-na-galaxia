@@ -1,9 +1,11 @@
 /** Catálogo balanceado de foguetes desbloqueáveis com moedas; dados offline. */
 export const ROCKETS=Object.freeze([
-  Object.freeze({id:'aurora',name:'Aurora',cost:0,primary:'#e7f6ff',accent:'#f95f94',engine:'#ffb04c',control:1,shield:0,description:'Foguete inicial, equilibrado'}),
-  Object.freeze({id:'cometa',name:'Cometa Azul',cost:60,primary:'#77deff',accent:'#1873d7',engine:'#b4f5ff',control:1.18,shield:0,description:'Manobras 18% mais rápidas'}),
-  Object.freeze({id:'flor',name:'Flor Estelar',cost:120,primary:'#d5ffa8',accent:'#aa66e5',engine:'#66ffcb',control:1.10,shield:0,description:'Controle mais ágil e cores da floresta'}),
-  Object.freeze({id:'guardiao',name:'Guardião Solar',cost:200,primary:'#ffe89b',accent:'#ed843a',engine:'#fff3b5',control:1.05,shield:1,description:'Começa cada tentativa com um escudo'})
+ Object.freeze({id:'aurora',name:'Aurora',cost:0,primary:'#f6fbff',accent:'#e73551',engine:'#ffb04c',control:1,shield:0,description:'Clássico arredondado, janela circular e pequenas aletas'}),
+ Object.freeze({id:'cometa',name:'Cometa Azul',cost:60,primary:'#178bd8',accent:'#0b4b94',engine:'#67e6ff',control:1,shield:0,description:'Esportivo, asas triangulares e dois motores'}),
+ Object.freeze({id:'flor',name:'Flor Estelar',cost:120,primary:'#2ac8db',accent:'#15b4a1',engine:'#ffdb62',control:1,shield:0,description:'Explorador, três janelas e asas em forma de folhas'}),
+ Object.freeze({id:'guardiao',name:'Guardião Solar',cost:200,primary:'#ffcc3b',accent:'#a9630f',engine:'#ffc35a',control:1,shield:0,description:'Blindagem dourada, cabine hexagonal e asas robustas'}),
+ Object.freeze({id:'falcao',name:'Falcão Turbo',cost:300,primary:'#ff942a',accent:'#e86b1c',engine:'#ffb04b',control:1,shield:0,description:'Aerodinâmico, asas inclinadas e três motores'}),
+ Object.freeze({id:'nebulon',name:'Nebulon',cost:450,primary:'#ac3ceb',accent:'#7736bd',engine:'#df73ff',control:1,shield:0,description:'Alienígena orgânico, luzes e propulsão violeta'})
 ]);
 export const DEFAULT_ROCKET='aurora';
 export function rocketById(id){return ROCKETS.find(r=>r.id===id)||ROCKETS[0];}
