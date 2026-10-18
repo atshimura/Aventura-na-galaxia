@@ -228,7 +228,7 @@ class GameState {
     this.planetElapsed+=dt;this.invincible=Math.max(0,this.invincible-dt);
     const moved=moveAstronaut(this.astronaut,this.walkAxis,dt,this.planet.biome,this.stage.number);
     this.walkingDistance+=Math.abs(this.astronaut.vx)*dt;
-    updatePlanetObjects(this.surface.objects,this.planetElapsed,this.planet.biome,this.stage.number);
+    updatePlanetObjects(this.surface.objects,this.planetElapsed,this.planet.biome,this.stage.number,this.astronaut,dt);
     if(moved.fell){
       if(this.invincible>0)respawnAstronaut(this.astronaut,this.checkpointX,this.planet.biome,this.stage.number);
       else this.damageAstronaut();
@@ -241,7 +241,19 @@ class GameState {
       }else if(obj.kind==='checkpoint'&&collision(this.astronaut,obj)){
         if(!obj.active){this.surface.objects.filter(o=>o.kind==='checkpoint').forEach(o=>o.active=false);obj.active=true;
           this.checkpointX=obj.x;this.events.push('Ponto de salvamento ativado!');}
-      }else if((obj.kind==='hazard'||obj.kind==='animal'&&!obj.friendly)&&collision(this.astronaut,obj)){
+      }else if(obj.kind==='hazard'&&obj.active!==false&&obj.harmful===false&&collision(this.astronaut,obj)){
+        // Obstáculos ambientais úteis: impulso suave e corrente; sem dano.
+        if(obj.effect==='boost'&&this.astronaut.onGround&&this.planetElapsed>(obj.lastBoost||-1)+.85){
+          this.astronaut.vy=-420;this.astronaut.onGround=false;obj.lastBoost=this.planetElapsed;
+        }else if(obj.effect==='current'){
+          const nextX=clamp(this.astronaut.x+dt*45,42,WORLD_LENGTH-40);
+          if(groundAt(nextX,this.planet.biome,this.stage.number)!==null)this.astronaut.x=nextX;
+        }else if(obj.effect==='gravity'&&this.astronaut.onGround){
+          this.astronaut.vy=-270;this.astronaut.onGround=false;
+        }
+      }else if(((obj.kind==='hazard'&&obj.active!==false&&obj.harmful!==false)
+          ||(obj.kind==='animal'&&!obj.friendly&&obj.visible!==false&&obj.dangerous!==false))
+          &&collision(this.astronaut,obj)){
         this.damageAstronaut();break;
       }
     }
