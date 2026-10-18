@@ -160,8 +160,8 @@ test('interface mostra HUD temporizado e feedback visual e remove texto do prêm
  assert.ok(css.includes('power-timers'));
  assert.doesNotMatch(core,/events\.push\('Invencibilidade!'\)/);
 });
-test('Android 0.6.5 atualiza o número da versão',()=>{
+test('Android 0.6.6 atualiza o número da versão',()=>{
  const gradle=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
  assert.match(gradle,/versionCode 12/);
- assert.match(gradle,/versionName '0.6.5'/);
+ assert.match(gradle,/versionName '0.6.6'/);
 });
