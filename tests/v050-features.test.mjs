@@ -4,9 +4,9 @@ import {readFileSync} from 'node:fs';
 import {GameState,sanitizeSave} from '../web/core.mjs';
 import {ROCKETS,DEFAULT_ROCKET,rocketById,sanitizeRockets,purchase,equip} from '../web/rockets.mjs';
 function make(stage=1,mode='adventure',save={}){return new GameState({stage,mode,save,rng:()=>.5,difficulty:'facil'});}
-test('garagem contém quatro foguetes com preço crescente',()=>{
- assert.equal(ROCKETS.length,4);
- assert.deepEqual(ROCKETS.map(r=>r.cost),[0,60,120,200]);
+test('garagem contém seis foguetes com preços aprovados',()=>{
+ assert.equal(ROCKETS.length,6);
+ assert.deepEqual(ROCKETS.map(r=>r.cost),[0,60,120,200,300,450]);
  assert.equal(DEFAULT_ROCKET,'aurora');assert.equal(rocketById('desconhecido').id,'aurora');
 });
 test('salvamento antigo recebe nave inicial e recorde infinito',()=>{
@@ -29,12 +29,12 @@ test('não equipa nave bloqueada, equipa e salva quando comprada',()=>{
  assert.equal(g.equipRocket('guardiao'),false);
  assert.equal(g.buyRocket('guardiao'),true);assert.equal(g.equipRocket('guardiao'),true);
  assert.equal(g.save.wallet,30);assert.equal(g.save.selectedRocket,'guardiao');
- const next=make(1,'adventure',g.save);next.start();assert.equal(next.shield,1);assert.equal(next.rocketModel.id,'guardiao');
+ const next=make(1,'adventure',g.save);next.start();assert.equal(next.shield,0);assert.equal(next.rocketModel.id,'guardiao');
 });
-test('foguete Cometa controla 18 por cento mais rápido',()=>{
+test('foguetes têm o mesmo controle e resistência',()=>{
  const first=make(),second=make(1,'adventure',{unlockedRockets:['cometa'],selectedRocket:'cometa'});
  first.start();second.start();first.steer({x:1,y:0},.05);second.steer({x:1,y:0},.05);
- assert.ok(second.target.x>first.target.x);
+ assert.equal(second.target.x,first.target.x);assert.ok(ROCKETS.every(r=>r.control===1&&r.shield===0));
 });
 test('nave inicial continua gratuita e equipada',()=>{
  const g=make();g.start();assert.equal(g.rocketModel.id,'aurora');assert.equal(g.shield,0);
@@ -86,10 +86,10 @@ test('laser acerta a nave e consome apenas uma vida',()=>{
  g.objects=[{kind:'laser',x:158,y:270,r:10,velocity:390}];g.update(.01);
  assert.equal(g.hearts,2);assert.ok(g.invincible>0);
 });
-test('escudo bloqueia um disparo laser',()=>{
+test('Guardião não recebe escudo especial; escudo depende de prêmio',()=>{
  const g=make(3,'adventure',{selectedRocket:'guardiao',unlockedRockets:['guardiao']});
  g.start();g.invincible=0;g.objects=[{kind:'laser',x:158,y:270,r:10,velocity:390}];g.update(.01);
- assert.equal(g.hearts,3);assert.equal(g.shield,0);
+ assert.equal(g.hearts,2);assert.equal(g.shield,0);
 });
 test('modo infinito não permite visitar planetas',()=>{
  const g=make(1,'infinite');g.start();g.elapsed=g.duration*.5;
