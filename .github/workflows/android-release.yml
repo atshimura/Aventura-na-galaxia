@@ -98,7 +98,8 @@ jobs:
           APK="android/app/build/outputs/apk/release/app-release.apk"
           test -s "$APK"
           APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
-          AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
+          APKANALYZER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name apkanalyzer | sort -V | tail -1)"
+          test -x "$APKANALYZER"
           "$APKSIGNER" verify --verbose "$APK"
           ACTUAL="$("$APKSIGNER" verify --print-certs "$APK" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
           NORMAL_ACTUAL="$(printf '%s' "$ACTUAL" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
@@ -107,9 +108,13 @@ jobs:
             echo "::error::Assinatura nao corresponde ao certificado fixo AVENTURA_CERT_SHA256. Publicacao bloqueada."
             exit 1
           fi
-          META="$("$AAPT" dump badging "$APK" | sed -n '1p')"
-          printf '%s\n' "$META" | grep -q "^package: name='br.com.aventuranagalaxia'"
-          VERSION_CODE="$(printf '%s' "$META" | sed -n "s/.*versionCode='\\([0-9][0-9]*\\)'.*/\\1/p")"
+          # apkanalyzer le os metadados sem depender do icone de tema Android.
+          PACKAGE_ID="$("$APKANALYZER" manifest application-id "$APK")"
+          if [ "$PACKAGE_ID" != 'br.com.aventuranagalaxia' ]; then
+            echo "::error::Identidade Android inesperada: $PACKAGE_ID"
+            exit 1
+          fi
+          VERSION_CODE="$("$APKANALYZER" manifest version-code "$APK")"
           if [ -z "$VERSION_CODE" ] || [ "$VERSION_CODE" -le 10 ]; then
             echo "::error::VersionCode deve ser maior que 10 (ultimo APK Debug 0.6.4)."
             exit 1
