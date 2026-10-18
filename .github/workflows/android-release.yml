@@ -1,9 +1,13 @@
 name: APK Android assinado para atualizacoes
 
-# Apenas no branch principal, acionado manualmente depois de configurar os segredos.
-# Nunca usa chaves de distribuicao em pull requests ou em builds automaticos de codigo proposto.
+# A solicitacao assinada so e aceita na main por workflow_dispatch ou mudanca
+# exclusiva do arquivo de controle. Segredos nunca sao expostos em pull requests.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'ops/android-release-request.txt'
 
 permissions:
   contents: read
@@ -19,6 +23,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validar solicitacao de release por alteracao controlada
+        if: github.event_name == 'push'
+        env:
+          PREVIOUS_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          FILES="$(git diff --name-only "$PREVIOUS_SHA" "$CURRENT_SHA")"
+          if [ "$FILES" != 'ops/android-release-request.txt' ]; then
+            echo "::error::O release via push exige somente o arquivo ops/android-release-request.txt alterado."
+            exit 1
+          fi
+          test -s ops/android-release-request.txt
+          REQUESTED_CODE="$(sed -n 's/^versionCode=\\([0-9][0-9]*\\)$/\\1/p' ops/android-release-request.txt)"
+          CURRENT_CODE="$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*\\([0-9][0-9]*\\).*$/\\1/p' android/app/build.gradle)"
+          if [ -z "$REQUESTED_CODE" ] || [ "$REQUESTED_CODE" != "$CURRENT_CODE" ]; then
+            echo "::error::O versionCode solicitado deve coincidir com o android/app/build.gradle."
+            exit 1
+          fi
+          echo "Release solicitado com versionCode=$CURRENT_CODE (apenas arquivo de controle)."
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

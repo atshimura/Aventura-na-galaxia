@@ -19,7 +19,7 @@ test('assinatura Release usa chave estavel do ambiente, sem chave embutida',()=>
  assert.match(gradle,/throw new GradleException/);
  assert.doesNotMatch(gradle,/storePassword\s+['"][^'"]+['"]/);
 });
-test('workflow de distribuicao so aceita acionamento manual da main',()=>{
+test('workflow de distribuicao aceita acionamento manual e gatilho controlado na main',()=>{
  const yml=text('.github/workflows/android-release.yml');
  assert.match(yml,/workflow_dispatch:/);
  assert.match(yml,/github\.ref == 'refs\/heads\/main'/);
@@ -51,4 +51,17 @@ test('teste de PR assina Release somente com chave efemera, sem publicar esse AP
  assert.match(workflow,/app-debug\.apk/);
  assert.match(workflow,/apksigner/);
  assert.doesNotMatch(workflow,/secrets\.AVENTURA_KEYSTORE_BASE64/);
+});
+
+test('workflow de distribuicao pode ser solicitado apenas por arquivo de controle',()=>{
+ const yml=text('.github/workflows/android-release.yml');
+ assert.match(yml,/push:[\s\S]*branches: \[main\]/);
+ assert.match(yml,/paths:[\s\S]*'ops\/android-release-request\.txt'/);
+ assert.match(yml,/if: github\.event_name == 'push'/);
+ assert.match(yml,/git diff --name-only/);
+ assert.match(yml,/FILES.*ops\/android-release-request\.txt/);
+ assert.match(yml,/REQUESTED_CODE/);
+ assert.match(yml,/CURRENT_CODE/);
+ assert.match(yml,/fetch-depth: 0/);
+ assert.doesNotMatch(yml,/pull_request:/);
 });
