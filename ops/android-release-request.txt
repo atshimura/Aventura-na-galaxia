@@ -1,3 +1,4 @@
 versionCode=11
 release=0.6.5
-reason=Primeira compilacao com assinatura permanente; manter APK Debug 0.6.4 instalado ate confirmar migracao dos dados.
+attempt=2
+reason=Solicitacao de APK Release assinado, com validacao do gatilho corrigida; nao desinstalar APK 0.6.4 sem migrar os dados.
