@@ -162,6 +162,6 @@ test('interface mostra HUD temporizado e feedback visual e remove texto do prêm
 });
 test('Android 0.6.5 atualiza o número da versão',()=>{
  const gradle=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(gradle,/versionCode 11/);
+ assert.match(gradle,/versionCode 12/);
  assert.match(gradle,/versionName '0.6.5'/);
 });
