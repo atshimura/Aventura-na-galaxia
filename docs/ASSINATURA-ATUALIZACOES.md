@@ -64,3 +64,20 @@ A transição exige uma estratégia de migração verificada no aparelho (por ex
 - `applicationId` incorreto, assinatura inválida ou `versionCode <= 10` → job falha; **não publica Release**.
 - Pull request ou branch diferente de `main` → não recebe capacidade de assinar o APK de distribuição.
 - O workflow Debug de testes continua independente dos segredos e não deve ser oferecido como APK atualizável.
+
+## Acionamento pela assistente via arquivo de solicitacao (sem permissao Actions write)
+
+O conector GitHub disponivel no ChatGPT consegue criar commits na branch principal, mas nao dispoe de um comando direto para o endpoint REST `workflow_dispatch`. Para permitir o acionamento autonomo com o **escopo de acesso existente**, o workflow de distribuicao tambem aceita um evento `push` que modifica exclusivamente `ops/android-release-request.txt` na `main`.
+
+Procedimento:
+1. Verificar que o codigo em `main` esta aprovado e que a chave permanente e variavel SHA256 ja foram configuradas.
+2. Criar ou atualizar o arquivo `ops/android-release-request.txt` em um commit **isolado** (sem outros arquivos modificados) com o conteúdo `versionCode=N`, correspondente ao Gradle; acrescentar uma nota com ID de solicitação, se necessário.
+3. O GitHub Actions reconhece a alteracao e executa `APK Android assinado para atualizacoes` na `main`.
+4. Antes de acessar os segredos de assinatura, o workflow verifica que **somente** o arquivo de controle mudou no intervalo do push e que o `versionCode` solicitado coincide com o Gradle.
+5. A assinatura e validada pelo SHA256 pinado, a instalacao é verificada no emulador e, **apenas se tudo passar**, o artefato Release assinado e publicado.
+
+O gatilho `workflow_dispatch` manual permanece disponivel. A conexao do GitHub no ChatGPT **nao precisa receber permissao adicional** de Actions nem visualizar os segredos. A configuracao de projeto e a posse da chave permanecem com o proprietario.
+
+Importante: o gatilho nao deve ser acionado para um codigo que ainda nao passou na revisao e nos testes. Assim como a acao manual, ele executa codigo de `main` com acesso temporario aos segredos do trabalho de assinatura. Nunca tornar esse workflow executavel em `pull_request` nem em branches nao confiaveis.
+
+A primeira geracao de APK assinada nao substitui, por si so, a instalacao Debug 0.6.4 que tenha certificado incompativel. A preservacao do `localStorage` nessa migracao segue como tarefa separada.
