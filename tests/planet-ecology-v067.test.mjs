@@ -94,6 +94,7 @@ test('camuflagem hostil permite reação antes de causar dano',()=>{
  assert.equal(o.dangerous,true);
  updatePlanetObjects([o],2,p.biome,11,{x:200,vx:0,vy:0},.05);
  assert.equal(o.dangerous,false);
+ assert.equal(o.visible,false);
 });
 test('obstáculos ativos, temporizados e úteis têm estados diferenciados',()=>{
  const p=getPlanet(9),objects=createPlanetLevel(9,p.biome);
