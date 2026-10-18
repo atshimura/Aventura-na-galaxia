@@ -34,8 +34,8 @@ test('voo continua com controle à direita',()=>{
 });
 test('Android 0.6.1 é compatível com a versão atual',()=>{
  const build=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(build,/versionCode 10/);
- assert.match(build,/versionName '0.6.4'/);
+ assert.match(build,/versionCode 11/);
+ assert.match(build,/versionName '0.6.5'/);
 });
 
 test('simula os dois dedos no Android: astronauta anda, salta e para ao soltar',async()=>{

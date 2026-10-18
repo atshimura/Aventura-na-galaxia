@@ -1,0 +1,116 @@
+name: APK Android assinado para atualizacoes
+
+# Apenas no branch principal, acionado manualmente depois de configurar os segredos.
+# Nunca usa chaves de distribuicao em pull requests ou em builds automaticos de codigo proposto.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release-signing
+  cancel-in-progress: false
+
+jobs:
+  validar:
+    name: Validar jogo
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Testes automatizados
+        run: npm test
+
+  assinar-e-verificar:
+    name: APK permanente assinado e teste de instalacao
+    needs: validar
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Preparar SDK Android
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -1)"
+          test -n "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install 'platforms;android-35' 'build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Preparar chave privada somente em arquivo temporario
+        env:
+          KEYSTORE_BASE64: ${{ secrets.AVENTURA_KEYSTORE_BASE64 }}
+          SIGNING_PASSWORD: ${{ secrets.AVENTURA_SIGNING_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$SIGNING_PASSWORD" ]; then
+            echo "::error::Configure os segredos AVENTURA_KEYSTORE_BASE64 e AVENTURA_SIGNING_PASSWORD."
+            exit 1
+          fi
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/aventura-release.p12"
+          keytool -list -keystore "$RUNNER_TEMP/aventura-release.p12" -storepass "$SIGNING_PASSWORD" -alias aventura >/dev/null
+      - name: Compilar APK Release com assinatura permanente
+        env:
+          AVENTURA_SIGNING_KEYSTORE: ${{ runner.temp }}/aventura-release.p12
+          AVENTURA_SIGNING_PASSWORD: ${{ secrets.AVENTURA_SIGNING_PASSWORD }}
+        run: gradle --no-daemon -p android :app:assembleRelease
+      - name: Validar certificado fixo, identidade e numero de versao
+        env:
+          EXPECTED_CERT_SHA256: ${{ vars.AVENTURA_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
+          "$APKSIGNER" verify --verbose "$APK"
+          ACTUAL="$("$APKSIGNER" verify --print-certs "$APK" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1)"
+          NORMAL_ACTUAL="$(printf '%s' "$ACTUAL" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          NORMAL_EXPECTED="$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          if [ -z "$NORMAL_EXPECTED" ] || [ "$NORMAL_ACTUAL" != "$NORMAL_EXPECTED" ]; then
+            echo "::error::Assinatura nao corresponde ao certificado fixo AVENTURA_CERT_SHA256. Publicacao bloqueada."
+            exit 1
+          fi
+          META="$("$AAPT" dump badging "$APK" | head -1)"
+          printf '%s\n' "$META" | grep -q "^package: name='br.com.aventuranagalaxia'"
+          VERSION_CODE="$(printf '%s' "$META" | sed -n "s/.*versionCode='\\([0-9][0-9]*\\)'.*/\\1/p")"
+          if [ -z "$VERSION_CODE" ] || [ "$VERSION_CODE" -le 10 ]; then
+            echo "::error::VersionCode deve ser maior que 10 (ultimo APK Debug 0.6.4)."
+            exit 1
+          fi
+          echo "Certificado de distribuicao verificado: $NORMAL_ACTUAL"
+          echo "Pacote Android correto; versionCode=$VERSION_CODE"
+      - name: Testar instalacao e reinstalacao sem remover aplicativo
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_5
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: |
+            adb install -r android/app/build/outputs/apk/release/app-release.apk
+            adb shell am start -W -n br.com.aventuranagalaxia/.MainActivity
+            adb shell pidof br.com.aventuranagalaxia
+            adb install -r android/app/build/outputs/apk/release/app-release.apk
+            adb shell am start -W -n br.com.aventuranagalaxia/.MainActivity
+            adb shell pidof br.com.aventuranagalaxia
+      - name: Publicar APK assinado verificado
+        uses: actions/upload-artifact@v4
+        with:
+          name: aventura-na-galaxia-APK-ASSINADO-ATUALIZAVEL
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 90
+      - name: Eliminar arquivo temporario de assinatura
+        if: always()
+        run: rm -f "$RUNNER_TEMP/aventura-release.p12"

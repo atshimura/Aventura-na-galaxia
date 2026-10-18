@@ -8,13 +8,45 @@ android {
         applicationId 'br.com.aventuranagalaxia'
         minSdk 24
         targetSdk 35
-        versionCode 10
-        versionName '0.6.4'
+        versionCode 11
+        versionName '0.6.5'
     }
-    buildTypes { release { minifyEnabled false } }
+    // Assinatura de distribuição: chave fornecida exclusivamente pelo ambiente seguro.
+    // Sem ambos os valores, uma tarefa Release não deve produzir APK distribuível.
+    signingConfigs {
+        release {
+            def signingKeystore = System.getenv('AVENTURA_SIGNING_KEYSTORE')
+            def signingPassword = System.getenv('AVENTURA_SIGNING_PASSWORD')
+            if (signingKeystore && signingPassword) {
+                storeFile file(signingKeystore)
+                storePassword signingPassword
+                keyAlias 'aventura'
+                keyPassword signingPassword
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+            debuggable false
+        }
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
     sourceSets { main { assets.srcDirs += ['../../web'] } }
+}
+
+// Falhar explicitamente se alguém tentar gerar um APK Release sem a chave correta.
+// O build Debug usado nos testes de PR permanece independente de segredos.
+gradle.taskGraph.whenReady { graph ->
+    if (graph.allTasks.any { it.name == 'assembleRelease' || it.name == 'bundleRelease' }) {
+        def keystore = System.getenv('AVENTURA_SIGNING_KEYSTORE')
+        def password = System.getenv('AVENTURA_SIGNING_PASSWORD')
+        if (!keystore || !password || !file(keystore).isFile()) {
+            throw new GradleException('Release exige AVENTURA_SIGNING_KEYSTORE e AVENTURA_SIGNING_PASSWORD válidos; nunca distribua Debug como atualização.')
+        }
+    }
 }
