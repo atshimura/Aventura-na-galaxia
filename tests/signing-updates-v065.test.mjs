@@ -43,3 +43,12 @@ test('documentacao distingue debug/release e ressalva migracao dos dados',()=>{
  assert.match(docs,/Não desinstalar/);
  assert.match(docs,/keytool -genkeypair/);
 });
+test('teste de PR assina Release somente com chave efemera, sem publicar esse APK',()=>{
+ const workflow=text('.github/workflows/android-apk.yml');
+ assert.match(workflow,/DESCARTAVEL/);
+ assert.match(workflow,/openssl rand/);
+ assert.match(workflow,/assembleRelease/);
+ assert.match(workflow,/app-debug\.apk/);
+ assert.match(workflow,/apksigner/);
+ assert.doesNotMatch(workflow,/secrets\.AVENTURA_KEYSTORE_BASE64/);
+});
