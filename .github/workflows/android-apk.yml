@@ -38,6 +38,15 @@ jobs:
           gradle-version: '8.9'
       - name: Compilar APK de teste
         run: gradle --no-daemon -p android :app:assembleDebug
+      - name: Validar build Release usando certificado DESCARTAVEL (nao distribuir)
+        run: |
+          set -euo pipefail
+          PASS="$(openssl rand -hex 18)"
+          KEYSTORE="$RUNNER_TEMP/aventura-ci-provisorio.p12"
+          trap 'rm -f "$KEYSTORE"' EXIT
+          keytool -genkeypair -noprompt -storetype PKCS12 -keystore "$KEYSTORE" -storepass "$PASS" -keypass "$PASS" -alias aventura -keyalg RSA -keysize 2048 -validity 2 -dname "CN=CI Apenas Teste" >/dev/null 2>&1
+          AVENTURA_SIGNING_KEYSTORE="$KEYSTORE" AVENTURA_SIGNING_PASSWORD="$PASS" gradle --no-daemon -p android :app:assembleRelease
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs android/app/build/outputs/apk/release/app-release.apk >/dev/null
       - name: Publicar APK
         uses: actions/upload-artifact@v4
         with:

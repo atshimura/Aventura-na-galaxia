@@ -1,6 +1,6 @@
 # 🚀 Aventura na Galáxia
 
-Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.6.4: campanha com 20 fases, planetas visitáveis, mapa galáctico e seis prêmios na caixinha.**
+Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.6.5: preparação para atualizações Android com assinatura digital permanente.**
 
 ## O que já funciona
 - Tela horizontal, voo para a direita, comando por arrastar o dedo.
@@ -129,3 +129,10 @@ Para desenvolver: loja, missões, diálogos e conteúdo especial da galáxia sec
 - Ícones com contagem regressiva, feedback sonoro existente e sinais visuais para poderes ativos.
 - A invencibilidade longa deixa de ser um prêmio. A proteção curta após dano, colisão com escudo e mudanças de modo permanece, prevenindo dano repetido.
 - Durações de poderes contadas durante o voo ativo, sem gastar tempo durante pausa ou exploração no planeta.
+
+## v0.6.5 — Atualizações Android com identidade fixa
+- `applicationId=br.com.aventuranagalaxia`, `versionCode=11`, `versionName=0.6.5`.
+- Criado workflow manual para APK **Release com assinatura permanente**, condicionado a dois segredos e ao fingerprint SHA-256 público do certificado. Não há nenhuma chave privada versionada no repositório.
+- **Atenção: a primeira versão assinada ainda não é distribuível** até o responsável criar e configurar sua chave no GitHub. Veja [instruções de configuração](docs/ASSINATURA-ATUALIZACOES.md).
+- **O APK Debug de Actions continua apenas para desenvolvimento.** Após configurar os segredos, usar somente o APK Release assinado do novo workflow para manter atualizações entre versões futuras.
+- A instalação anterior 0.6.4 Debug pode exigir migração especial devido a certificados distintos. Não desinstale sem garantir a recuperação do progresso.
