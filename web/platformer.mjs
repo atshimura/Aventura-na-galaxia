@@ -150,8 +150,12 @@ export function updatePlanetObjects(objects,time,biome,stage,astronaut=null,dt=.
     obj.reaction=near?(obj.hostile?'alert':'hidden'):'idle';
     // Hostis camuflados avisam ao emergir; pacíficos simplesmente se escondem.
     if(!obj.hostile&&near)obj.visible=false;
-    if(obj.hostile&&near)obj.attention=Math.min(1,(obj.attentionElapsed=(obj.attentionElapsed||0)+step)/.55);
-    else obj.attentionElapsed=0;
+    if(obj.hostile){
+     // Camuflado enquanto distante; emerge visivelmente durante 0,55 s.
+     obj.visible=near;
+     if(near)obj.attention=Math.min(1,(obj.attentionElapsed=(obj.attentionElapsed||0)+step)/.55);
+     else obj.attentionElapsed=0;
+    }else obj.attentionElapsed=0;
    }else if(type==='blink'){
     const cycle=((time*.65+obj.phase)%4+4)%4;
     obj.visible=cycle>=.9;
