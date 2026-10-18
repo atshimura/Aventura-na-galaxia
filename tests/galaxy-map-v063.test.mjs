@@ -67,9 +67,9 @@ test('interface contém ficha e névoa separada de fases exploradas',()=>{
  assert.match(main,/status\.unlocked\?\(game\.save\.planetNames/);
  assert.match(main,/mapStartScroll/);
 });
-test('Android usa versão 0.6.6',()=>{
+test('Android usa versão 0.6.7',()=>{
  const gradle=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(gradle,/versionCode 12/);assert.match(gradle,/versionName '0.6.6'/);
+ assert.match(gradle,/versionCode 13/);assert.match(gradle,/versionName '0.6.7'/);
 });
 test('fluxo real do mapa: abrir, consultar fase bloqueada, explorar ficha, iniciar fase',async()=>{
  const byId=new Map(),events=new Map();

@@ -1,6 +1,7 @@
 /** Cenários 2D ilustrados: cada um dos vinte planetas possui motivos exclusivos. */
 import {WORLD_LENGTH,groundAt,FLIGHT_PAD_X,pitsForStage} from './platformer.mjs';
 import {drawRocketModel} from './rocket-render.mjs';
+import {drawPlanetCreature,drawPlanetObstacle} from './planet-ecology-render.mjs';
 const PI=Math.PI,TAU=PI*2;
 const motifs=Object.freeze([
  'aurora-curtains','asteroid-craters','ice-spires','forest-giants',
@@ -283,33 +284,9 @@ export function drawPlatformPlanet(c,game,time){
    disk(c,o.x,o.y-39,11,o.active?'#66ffad':'#b1d1e7');
    c.font='bold 11px system-ui';c.fillStyle='#ffffff';c.fillText('SALVAR',o.x-21,o.y-55);
   }else if(o.kind==='animal'){
-   const body=o.friendly?(stage%2?'#9bf4bf':'#bce6ff'):'#ed927c';
-   const bob=Math.sin(time/290+o.phase)*2;
-   if(stage===9||stage===14||stage===15){
-    ell(c,o.x,o.y+bob,22,12,body);
-    polygon(c,[[o.x-20,o.y],[o.x-37,o.y-14],[o.x-37,o.y+14]],body);
-    disk(c,o.x+13,o.y-4+bob,3,'#1d3159');
-   }else if(stage===10||stage===12||stage===20){
-    c.fillStyle=body;c.fillRect(o.x-16,o.y-18+bob,32,27);
-    disk(c,o.x-7,o.y-7+bob,3,'#203e5e');
-    disk(c,o.x+7,o.y-7+bob,3,'#203e5e');
-    stroke(c,o.x,o.y-18+bob,o.x,o.y-28+bob,'#baf3fa',3);
-   }else{
-    ell(c,o.x,o.y+bob,19,16,body);
-    for(const ear of [-11,11])polygon(c,[[o.x+ear,o.y-12+bob],[o.x+ear*1.3,o.y-30+bob],[o.x+ear*.35,o.y-18+bob]],body);
-    disk(c,o.x+8,o.y-4+bob,3,'#1c3157');
-   }
-   if(!o.friendly)stroke(c,o.x-17,o.y+15+bob,o.x+18,o.y+15+bob,'#ffbf89',3);
-  }else if(o.kind==='hazard'){
-   const type=o.style,color=['electric','gravity-orbs'].includes(type)?'#bf96ff':
-    ['steam-vent','stinging-corals'].includes(type)?'#ff909e':
-    ['cactus','roots'].includes(type)?'#89c976':'#ffa978';
-   if(type==='electric'||type==='gravity-orbs'){
-    disk(c,o.x,o.y,17,color);
-    for(let j=0;j<5;j++)stroke(c,o.x,o.y,o.x+Math.cos(j*TAU/5)*31,o.y+Math.sin(j*TAU/5)*31,'#d7eafe',3);
-   }else{
-    polygon(c,[[o.x-20,o.y+16],[o.x-12,o.y-20],[o.x,o.y-3],[o.x+10,o.y-24],[o.x+22,o.y+16]],color);
-   }
+   drawPlanetCreature(c,o,time);
+  }else if(o.kind==='hazard'||o.kind==='scenery'){
+   drawPlanetObstacle(c,o,time);
   }
  }
  // Foguete: os apoios repousam precisamente sobre o terreno real.

@@ -7,8 +7,8 @@ const text=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 test('APK distribuido mantem packageName e avanca codigo da versao',()=>{
  const gradle=text('android/app/build.gradle');
  assert.match(gradle,/applicationId 'br\.com\.aventuranagalaxia'/);
- assert.match(gradle,/versionCode 12/);
- assert.match(gradle,/versionName '0\.6\.6'/);
+ assert.match(gradle,/versionCode 13/);
+ assert.match(gradle,/versionName '0\.6\.7'/);
 });
 test('assinatura Release usa chave estavel do ambiente, sem chave embutida',()=>{
  const gradle=text('android/app/build.gradle');
