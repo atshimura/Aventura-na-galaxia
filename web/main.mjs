@@ -4,6 +4,7 @@ import {drawPlatformPlanet} from './platformer-render.mjs';
 import {GALAXY_WIDTH,GALAXY_POINTS,getMapStatus,mapStartScroll,drawGalaxyRoute,drawPlanetPortrait} from './galaxy-map.mjs';
 import {FLIGHT_PAD_X,canBoard} from './platformer.mjs';
 import {ROCKETS,rocketById,sanitizeRockets} from './rockets.mjs';
+import {drawRocketModel} from './rocket-render.mjs';
 import {getPlanet} from './world.mjs';
 import {drawSpaceEnvironment,drawPlanetEnvironment,drawPlanetApproach,drawHazard,drawGem} from './world-render.mjs';
 const $=id=>document.getElementById(id);
@@ -114,10 +115,14 @@ function showShop(){
  $('rocket-list').innerHTML=ROCKETS.map(r=>{
    const owned=unlocked.includes(r.id),active=game.save.selectedRocket===r.id;
    return `<div class="rocket-entry" style="--rocket-color:${r.primary}">
-      <div class="rocket-icon">🚀</div><div><div class="rocket-title">${r.name}</div><div class="rocket-sub">${r.description}</div></div>
+      <div class="rocket-icon"><canvas class="rocket-preview" width="116" height="88" data-rocket-preview="${r.id}" aria-label="Ilustração do foguete ${r.name}"></canvas></div><div><div class="rocket-title">${r.name}</div><div class="rocket-sub">${r.description}</div></div>
       <button data-rocket="${r.id}" class="secondary" ${active||(!owned&&game.save.wallet<r.cost)?'disabled':''}>${active?'✓ EM USO':owned?'USAR':`🪙 ${r.cost}`}</button>
     </div>`;
  }).join('');
+ for(const canvas of $('rocket-list').querySelectorAll('[data-rocket-preview]')){
+   const g=canvas.getContext('2d');if(!g)continue;
+   drawRocketModel(g,canvas.dataset.rocketPreview,{x:58,y:44,scale:1.03,rotation:-Math.PI/2,thrust:false});
+ }
 }
 function begin(stage=selectedStage,mode='adventure'){
  audio.setEnabled(game.save.sound);audio.unlock();
@@ -288,19 +293,13 @@ function background(t){const theme=game.stage, bg=ctx.createLinearGradient(0,0,0
   drawSpaceEnvironment(ctx,game,t);
   for(const s of stars){const x=((s.x-t*s.speed)%WIDTH+WIDTH)%WIDTH;const alpha=.4+Math.sin(t*.002+s.phase)*.25;ctx.fillStyle=`rgba(218,246,255,${alpha})`;ctx.beginPath();ctx.arc(x,s.y,s.r,0,Math.PI*2);ctx.fill();if(s.glow>.95)glow(x,s.y,11,'#7de9fc44');}
 }
-function drawRocket(x,y,t,invincible=0,shield=false,docked=false){ctx.save();ctx.translate(x,y);if(invincible>0&&Math.floor(t/95)%2===0)ctx.globalAlpha=.48;
-  const design=rocketById(game.rocketModel.id);
-  const thrust=docked?0:14+Math.sin(t/77)*8;const fire=ctx.createLinearGradient(-58,0,-12,0);fire.addColorStop(0,'#f65d42');fire.addColorStop(.4,design.engine);fire.addColorStop(1,'#f7f4bd');ctx.fillStyle=fire;
-  if(!docked){ctx.beginPath();ctx.moveTo(-23,-11);ctx.quadraticCurveTo(-45,-8,-56-thrust,0);ctx.quadraticCurveTo(-42,8,-23,11);ctx.fill();}
-  ctx.fillStyle=design.accent;ctx.beginPath();ctx.moveTo(-15,-9);ctx.lineTo(-36,-29);ctx.lineTo(7,-16);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(-15,9);ctx.lineTo(-36,29);ctx.lineTo(7,16);ctx.closePath();ctx.fill();
-  let body=ctx.createLinearGradient(0,-18,0,18);body.addColorStop(0,'#fbfcff');body.addColorStop(.55,design.primary);body.addColorStop(1,'#4e97dd');ctx.fillStyle=body;ctx.beginPath();ctx.moveTo(-33,-16);ctx.lineTo(17,-16);ctx.quadraticCurveTo(34,-7,43,0);ctx.quadraticCurveTo(34,7,17,16);ctx.lineTo(-33,16);ctx.closePath();ctx.fill();
-  ctx.strokeStyle='#77e9ff';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#173d85';ctx.beginPath();ctx.arc(5,-1,10,0,7);ctx.fill();ctx.fillStyle='#68eeff';ctx.beginPath();ctx.arc(4,-3,7,0,7);ctx.fill();ctx.fillStyle='#ecfffd';ctx.beginPath();ctx.arc(1,-6,2,0,7);ctx.fill();
-  ctx.fillStyle=design.accent;ctx.fillRect(-30,-13,10,26);
-  if(design.id==='cometa'){ctx.fillStyle='#aaffff';ctx.fillRect(-14,-9,12,4);ctx.fillRect(-14,5,12,4);}
-  if(design.id==='flor'){ctx.fillStyle='#ffe7f9';ctx.beginPath();ctx.arc(-13,0,5,0,7);ctx.fill();}
-  if(design.id==='guardiao'){ctx.strokeStyle='#fff2bb';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-20,-19);ctx.lineTo(-8,-31);ctx.lineTo(12,-19);ctx.stroke();}
-  if(shield){ctx.strokeStyle='#70eeff';ctx.lineWidth=4;ctx.shadowBlur=19;ctx.shadowColor='#39def9';ctx.beginPath();ctx.arc(0,0,43,0,7);ctx.stroke();}
-  ctx.restore();}
+function drawRocket(x,y,t,invincible=0,shield=false,docked=false){
+ ctx.save();
+ if(invincible>0&&Math.floor(t/95)%2===0)ctx.globalAlpha=.48;
+ drawRocketModel(ctx,game.rocketModel.id,{x,y,scale:1,rotation:0,thrust:!docked,time:t});
+ if(shield){ctx.strokeStyle='#70eeff';ctx.lineWidth=4;ctx.shadowBlur=19;ctx.shadowColor='#39def9';ctx.beginPath();ctx.arc(x,y,53,0,Math.PI*2);ctx.stroke();}
+ ctx.restore();
+}
 function asteroid(o){ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.rot);let gr=ctx.createLinearGradient(-o.r,-o.r,o.r,o.r);gr.addColorStop(0,'#e7b3a9');gr.addColorStop(.5,'#a2768a');gr.addColorStop(1,'#513d66');ctx.fillStyle=gr;ctx.strokeStyle='#ffb7a077';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<9;i++){const a=i*Math.PI*2/9,r=o.r*(.85+.15*Math.sin(i*7+o.id*20));const px=Math.cos(a)*r,py=Math.sin(a)*r;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#58466388';for(const [a,b,r] of [[-.3,-.2,.22],[.32,.23,.17],[-.23,.38,.12]]){ctx.beginPath();ctx.arc(o.r*a,o.r*b,o.r*r,0,7);ctx.fill();}ctx.restore();}
 /** Satélite com painéis fotovoltaicos, células, antena e carcaça metálica. */
 function satellite(o){
