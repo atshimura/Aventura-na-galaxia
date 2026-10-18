@@ -65,3 +65,10 @@ test('workflow de distribuicao pode ser solicitado apenas por arquivo de control
  assert.match(yml,/fetch-depth: 0/);
  assert.doesNotMatch(yml,/pull_request:/);
 });
+
+test('versao solicitada por push e parseada sem erro de escape',()=>{
+ const yml=text('.github/workflows/android-release.yml');
+ assert.match(yml,/REQUESTED_CODE="\$\(awk -F= /);
+ assert.match(yml,/CURRENT_CODE="\$\(awk '\$1=="versionCode"/);
+ assert.doesNotMatch(yml,/REQUESTED_CODE="\$\(sed -n/);
+});

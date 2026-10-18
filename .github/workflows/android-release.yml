@@ -38,8 +38,8 @@ jobs:
             exit 1
           fi
           test -s ops/android-release-request.txt
-          REQUESTED_CODE="$(sed -n 's/^versionCode=\\([0-9][0-9]*\\)$/\\1/p' ops/android-release-request.txt)"
-          CURRENT_CODE="$(sed -n 's/^[[:space:]]*versionCode[[:space:]]*\\([0-9][0-9]*\\).*$/\\1/p' android/app/build.gradle)"
+          REQUESTED_CODE="$(awk -F= '$1=="versionCode" {print $2}' ops/android-release-request.txt)"
+          CURRENT_CODE="$(awk '$1=="versionCode" {print $2}' android/app/build.gradle)"
           if [ -z "$REQUESTED_CODE" ] || [ "$REQUESTED_CODE" != "$CURRENT_CODE" ]; then
             echo "::error::O versionCode solicitado deve coincidir com o android/app/build.gradle."
             exit 1
