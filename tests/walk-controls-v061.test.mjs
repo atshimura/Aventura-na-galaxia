@@ -34,7 +34,7 @@ test('voo continua com controle à direita',()=>{
 });
 test('Android 0.6.1 é compatível com a versão atual',()=>{
  const build=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(build,/versionCode 11/);
+ assert.match(build,/versionCode 12/);
  assert.match(build,/versionName '0.6.5'/);
 });
 
