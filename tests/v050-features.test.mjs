@@ -149,7 +149,7 @@ test('interface inclui loja, infinito, saída e embarque',()=>{
 test('gráficos incluem astronauta e projétil com efeito visual',()=>{
  const main=file('main.mjs');
  assert.match(main,/function astronaut\(/);assert.match(main,/function laserBolt\(/);
- assert.match(main,/game\.state==='walking'/);assert.match(main,/rocketById\(game\.rocketModel\.id\)/);
+ assert.match(main,/game\.state==='walking'/);assert.match(main,/drawRocketModel\(ctx,game\.rocketModel\.id/);
 });
 test('biomas têm formas de vida e diferentes vegetações',()=>{
  const visual=file('world-render.mjs');
@@ -160,5 +160,5 @@ test('áudio inclui efeito de laser e versão Android foi atualizada',()=>{
 
  assert.match(file('music-v2.mjs'),/kind==='laser'/);
  const build=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(build,/versionCode 12/);assert.match(build,/versionName '0.6.5'/);
+ assert.match(build,/versionCode 12/);assert.match(build,/versionName '0.6.6'/);
 });
