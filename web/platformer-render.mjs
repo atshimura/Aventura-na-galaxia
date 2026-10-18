@@ -1,5 +1,6 @@
 /** Cenários 2D ilustrados: cada um dos vinte planetas possui motivos exclusivos. */
 import {WORLD_LENGTH,groundAt,FLIGHT_PAD_X,pitsForStage} from './platformer.mjs';
+import {drawRocketModel} from './rocket-render.mjs';
 const PI=Math.PI,TAU=PI*2;
 const motifs=Object.freeze([
  'aurora-curtains','asteroid-craters','ice-spires','forest-giants',
@@ -317,16 +318,8 @@ export function drawPlatformPlanet(c,game,time){
  if(game.state==='landing')rocketY-=Math.pow(1-game.transitionProgress,2)*245;
  if(game.state==='takeoff')rocketY-=Math.pow(game.transitionProgress,2)*330;
  c.save();c.translate(FLIGHT_PAD_X,rocketY);
- stroke(c,-21,2,-30,29,'#d1eaff',4);stroke(c,21,2,30,29,'#d1eaff',4);
- polygon(c,[[0,-55],[24,-11],[17,20],[-17,20],[-24,-11]],game.rocketModel.accent);
- c.fillStyle=game.rocketModel.primary;c.fillRect(-13,-19,26,27);
- disk(c,0,-18,10,'#53d5ef');
- if(game.state==='landing'||game.state==='takeoff'){
-  polygon(c,[[-8,22],[0,45+Math.sin(time/100)*12],[8,22]],'#ffdd7a');
- }
- if(['disembarking','walking','boarding','landed'].includes(game.state)){
-  stroke(c,16,11,46,27,'#f5cf99',3);
- }
+ drawRocketModel(c,game.rocketModel.id,{scale:1.03,rotation:-Math.PI/2,thrust:game.state==='landing'||game.state==='takeoff',time});
+ if(['disembarking','walking','boarding','landed'].includes(game.state))stroke(c,16,11,46,27,'#f5cf99',3);
  c.restore();c.restore();
  c.font='bold 16px system-ui';c.fillStyle='#ffffff';c.shadowColor='#000';c.shadowBlur=6;
  c.fillText(p.icon+' '+(game.save.planetNames[p.stage]||p.name)+' — EXPLORAÇÃO LIVRE',24,92);
