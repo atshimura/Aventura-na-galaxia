@@ -28,8 +28,10 @@ test('workflow de distribuicao aceita acionamento manual e gatilho controlado na
 });
 test('workflow recusa assinatura desconhecida e APK sem validacao',()=>{
  const yml=text('.github/workflows/android-release.yml');
- for(const word of ['secrets.AVENTURA_KEYSTORE_BASE64','secrets.AVENTURA_SIGNING_PASSWORD','vars.AVENTURA_CERT_SHA256','assembleRelease','apksigner','aapt','base64 --decode','android-emulator-runner','upload-artifact'])assert.ok(yml.includes(word),word);
+ for(const word of ['secrets.AVENTURA_KEYSTORE_BASE64','secrets.AVENTURA_SIGNING_PASSWORD','vars.AVENTURA_CERT_SHA256','assembleRelease','apksigner','apkanalyzer','base64 --decode','android-emulator-runner','upload-artifact'])assert.ok(yml.includes(word),word);
  assert.match(yml,/NORMAL_ACTUAL.*NORMAL_EXPECTED/);
+ assert.match(yml,/manifest application-id/);
+ assert.match(yml,/manifest version-code/);
  assert.match(yml,/versionCode.*greater|VersionCode deve ser maior/);
  const publish=yml.indexOf('Publicar APK assinado verificado');
  assert.ok(publish>yml.indexOf('Testar instalacao e reinstalacao'));
