@@ -1,0 +1,3 @@
+versionCode=11
+release=0.6.5
+reason=Primeira compilacao com assinatura permanente; manter APK Debug 0.6.4 instalado ate confirmar migracao dos dados.
