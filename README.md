@@ -1,6 +1,6 @@
 # 🚀 Aventura na Galáxia
 
-Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.6.7: ecossistemas próprios nos 20 planetas, 60 espécies de alienígenas e obstáculos específicos por mundo.**
+Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.6.8: novo ícone ilustrado para o aplicativo, mantendo os ecossistemas da 0.6.7.**
 
 ## O que já funciona
 - Tela horizontal, voo para a direita, comando por arrastar o dedo.
@@ -30,6 +30,11 @@ Abra `http://localhost:8765` e coloque o navegador em modo horizontal. O teste d
 ```sh
 npm test
 ```
+
+## Ícone oficial do aplicativo
+- Arte aprovada do foguete branco e vermelho em galáxia colorida, com planetas e rastro de fogo.
+- Recurso em `android/app/src/main/res/drawable-nodpi/icon_galaxia.webp`, referenciado no `AndroidManifest.xml` como ícone normal e redondo.
+- O APK de teste continua sendo Debug provisório, sem alterar a chave de assinatura permanente.
 
 ## Como compilar o APK
 Na raiz deste repositório, o workflow `.github/workflows/android-apk.yml` executa testes de regras, compila `app-debug.apk` e tenta um teste de inicialização no emulador Android em push/PR ou manualmente em **Actions → Testes e APK Android → Run workflow**. Na execução concluída, baixe o artefato **aventura-na-galaxia-debug-apk** e extraia o APK.
