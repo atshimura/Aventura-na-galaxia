@@ -52,9 +52,22 @@
       <div class="menu-footer"><span id="menu-wallet">🪙 0 moedas</span><span id="menu-best">🏆 Recorde: 0</span><span id="menu-infinite">♾️ 0</span><label class="sound-control">🎼 <input id="music-volume" aria-label="Volume da música" type="range" min="0" max="100" value="94"/></label>
         <label class="sound-control">🔊 <input id="effects-volume" aria-label="Volume dos efeitos" type="range" min="0" max="100" value="72"/></label>
         <button id="sound" class="muted-button">🔊 Som ligado</button></div>
+      <button type="button" id="privacy-open" class="muted-button privacy-link">🔒 POLÍTICA DE PRIVACIDADE</button>
       <p class="tiny">Use o joystick direito para pilotar, o esquerdo para caminhar e o botão à direita para pular. Visite planetas com árvores e bichinhos, encontre cristais, compre novos foguetes na loja e desvie dos lasers alienígenas!</p>
     </section>
 
+    <section id="privacy" class="overlay hidden privacy-screen" aria-labelledby="privacy-title">
+      <h2 id="privacy-title">🔒 POLÍTICA DE PRIVACIDADE</h2>
+      <div class="privacy-copy" tabindex="0">
+        <p>O Aventura na Galáxia funciona sem conta, anúncios ou compras com dinheiro real.</p>
+        <p>Moedas, recordes, foguetes comprados, planetas explorados, nomes opcionais dos planetas e preferências de áudio são salvos somente no dispositivo pelo armazenamento local do aplicativo.</p>
+        <p>Essas informações não são enviadas para servidores do jogo nem compartilhadas pelo desenvolvedor com anunciantes. O jogo não solicita acesso à localização ou à internet.</p>
+        <p>Os dados podem ser apagados ao limpar os dados do aplicativo ou desinstalá-lo. O progresso poderá ser perdido.</p>
+        <p>O sistema Android e a Google Play Store têm suas próprias políticas de tratamento de dados de instalação e serviços da plataforma.</p>
+        <p>Para esclarecimentos, utilize o canal de suporte do desenvolvedor na Play Store ou o repositório público Aventura-na-galaxia no GitHub. A versão pública da política consta na documentação do projeto.</p>
+      </div>
+      <button id="privacy-close" type="button" class="secondary">⌂ VOLTAR AO MENU</button>
+    </section>
     <section id="galaxy-map" class="overlay hidden galaxy-screen" aria-labelledby="galaxy-title">
       <header class="galaxy-header">
         <div class="galaxy-heading">
