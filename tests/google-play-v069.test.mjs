@@ -18,7 +18,7 @@ test('geração AAB é isolada dos pull requests e publica apenas pacote verific
   "if: github.ref == 'refs/heads/main'",'secrets.AVENTURA_KEYSTORE_BASE64',
   'secrets.AVENTURA_SIGNING_PASSWORD','vars.AVENTURA_CERT_SHA256',
   'bundleRelease','jarsigner -verify','keytool -printcert -jarfile',
-  'NORMAL_ACTUAL','NORM_EXPECTED','if-no-files-found: error','upload-artifact@v4']){
+  'NORM_ACTUAL','NORM_EXPECTED','if-no-files-found: error','upload-artifact@v4']){
   assert.ok(yaml.includes(v),'Esperado no workflow: '+v);
  }
  assert.doesNotMatch(yaml,/pull_request:/);
