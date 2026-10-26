@@ -23,8 +23,8 @@ test('novo APK avança versao sem alterar identidade ou assinatura provisoria',(
  const gradle=read('android/app/build.gradle').toString('utf8');
  const workflow=read('.github/workflows/android-apk.yml').toString('utf8');
  assert.match(gradle,/applicationId 'br\.com\.aventuranagalaxia'/);
- assert.match(gradle,/versionCode 14/);
- assert.match(gradle,/versionName '0\.6\.8'/);
+ assert.match(gradle,/versionCode 15/);
+ assert.match(gradle,/versionName '0\.6\.9'/);
  assert.match(workflow,/assembleDebug/);
  assert.match(workflow,/aventura-na-galaxia-debug-apk/);
 });
