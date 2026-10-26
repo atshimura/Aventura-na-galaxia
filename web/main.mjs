@@ -91,7 +91,7 @@ function resetSteering(){flightControl.clear();walkControl.clear();game.stopStee
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(game.save))}catch{/* armazenamento indisponível */}}
 function panels(active){
   displayMode=active;
-  for(const id of ['menu','pause-menu','result','planet-name','shop','galaxy-map'])$(id).classList.toggle('hidden',active!==id);
+  for(const id of ['menu','pause-menu','result','planet-name','shop','galaxy-map','privacy'])$(id).classList.toggle('hidden',active!==id);
   $('hud').classList.toggle('hidden',active!=='playing');
   flightStick.classList.toggle('hidden',active!=='playing'||game.state!=='playing');
   walkStick.classList.toggle('hidden',active!=='playing'||game.state!=='walking');
@@ -241,6 +241,8 @@ $('galaxy-card-play').addEventListener('click',()=>{
 });
 
 $('open-shop').addEventListener('click',showShop);$('shop-close').addEventListener('click',menu);
+$('privacy-open').addEventListener('click',()=>{audio.pause();panels('privacy');});
+$('privacy-close').addEventListener('click',menu);
 $('rocket-list').addEventListener('click',e=>{
  const button=e.target.closest('[data-rocket]');if(!button)return;
  const id=button.dataset.rocket;

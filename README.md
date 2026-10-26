@@ -1,6 +1,6 @@
 # 🚀 Aventura na Galáxia
 
-Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.6.8: novo ícone ilustrado para o aplicativo, mantendo os ecossistemas da 0.6.7.**
+Jogo de exploração espacial para Android, em português, com visual de desenho animado. **Versão 0.6.9: preparação para a Google Play (Android API 36, arquivo AAB assinado, política de privacidade e materiais da loja).**
 
 ## O que já funciona
 - Tela horizontal, voo para a direita, comando por arrastar o dedo.
@@ -35,6 +35,12 @@ npm test
 - Arte aprovada do foguete branco e vermelho em galáxia colorida, com planetas e rastro de fogo.
 - Recurso em `android/app/src/main/res/drawable-nodpi/icon_galaxia.webp`, referenciado no `AndroidManifest.xml` como ícone normal e redondo.
 - O APK de teste continua sendo Debug provisório, sem alterar a chave de assinatura permanente.
+
+## Preparar Google Play
+- O fluxo `.github/workflows/google-play-aab.yml` gera o **AAB assinado** para envio manual à faixa de teste interno do Play Console. Não publica automaticamente e não expõe as chaves.
+- A solicitação segura pode ser executada manualmente em Actions ou via alteração exclusiva de `ops/google-play-aab-request.txt` na branch main.
+- Consulte `docs/play-store/CHECKLIST-PUBLICACAO.md`, `docs/play-store/FICHA-LOJA.md` e `docs/play-store/POLITICA-PRIVACIDADE.md`.
+- O APK Debug permanece destinado apenas a testes fora da loja.
 
 ## Como compilar o APK
 Na raiz deste repositório, o workflow `.github/workflows/android-apk.yml` executa testes de regras, compila `app-debug.apk` e tenta um teste de inicialização no emulador Android em push/PR ou manualmente em **Actions → Testes e APK Android → Run workflow**. Na execução concluída, baixe o artefato **aventura-na-galaxia-debug-apk** e extraia o APK.

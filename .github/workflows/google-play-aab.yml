@@ -1,0 +1,128 @@
+name: AAB Google Play - release assinada
+
+# Não publica automaticamente no Play Console; apenas fornece bundle assinado.
+# Segredos nunca são disponibilizados a pull requests.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'ops/google-play-aab-request.txt'
+permissions:
+  contents: read
+concurrency:
+  group: google-play-aab
+  cancel-in-progress: false
+jobs:
+  validar:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Autorizar gatilho push exclusivamente pelo arquivo de solicitacao
+        if: github.event_name == 'push'
+        env:
+          PREVIOUS_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          FILES="$(git diff --name-only "$PREVIOUS_SHA" "$CURRENT_SHA")"
+          if [ "$FILES" != 'ops/google-play-aab-request.txt' ]; then
+            echo "::error::A geração AAB via push exige somente ops/google-play-aab-request.txt alterado."
+            exit 1
+          fi
+          REQUESTED_CODE="$(awk -F= '$1=="versionCode" {print $2}' ops/google-play-aab-request.txt)"
+          CURRENT_CODE="$(awk '$1=="versionCode" {print $2}' android/app/build.gradle)"
+          if [ -z "$REQUESTED_CODE" ] || [ "$REQUESTED_CODE" != "$CURRENT_CODE" ]; then
+            echo "::error::versionCode da solicitação não confere."
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Testar jogo e requisitos de loja
+        run: npm test
+  gerar-aab:
+    name: Gerar Android App Bundle assinado
+    needs: validar
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Preparar Android SDK 36
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -1)"
+          test -n "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" --install 'platforms;android-36' 'build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Carregar chave de upload em diretório temporário
+        env:
+          KEYSTORE_BASE64: ${{ secrets.AVENTURA_KEYSTORE_BASE64 }}
+          SIGNING_PASSWORD: ${{ secrets.AVENTURA_SIGNING_PASSWORD }}
+          EXPECTED_CERT_SHA256: ${{ vars.AVENTURA_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$SIGNING_PASSWORD" ] || [ -z "$EXPECTED_CERT_SHA256" ]; then
+            echo "::error::Configure secrets de assinatura e variavel publica AVENTURA_CERT_SHA256."
+            exit 1
+          fi
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/aventura-play-upload.p12"
+          keytool -list -v -keystore "$RUNNER_TEMP/aventura-play-upload.p12" -storepass "$SIGNING_PASSWORD" -alias aventura > "$RUNNER_TEMP/cert-upload.txt"
+          ACTUAL="$(sed -n 's/^.*SHA256: //p' "$RUNNER_TEMP/cert-upload.txt" | head -1)"
+          NORM_ACTUAL="$(printf '%s' "$ACTUAL" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          NORM_EXPECTED="$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          if [ -z "$NORM_ACTUAL" ] || [ "$NORM_ACTUAL" != "$NORM_EXPECTED" ]; then
+            echo "::error::Fingerprint do certificado de upload divergente; bloqueando."
+            exit 1
+          fi
+      - name: Compilar Android App Bundle Release
+        env:
+          AVENTURA_SIGNING_KEYSTORE: ${{ runner.temp }}/aventura-play-upload.p12
+          AVENTURA_SIGNING_PASSWORD: ${{ secrets.AVENTURA_SIGNING_PASSWORD }}
+        run: gradle --no-daemon -p android :app:bundleRelease
+      - name: Verificar AAB assinado e integridade do pacote
+        env:
+          EXPECTED_CERT_SHA256: ${{ vars.AVENTURA_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          AAB="android/app/build/outputs/bundle/release/app-release.aab"
+          test -s "$AAB"
+          unzip -t "$AAB" >/dev/null
+          jarsigner -verify -verbose -certs "$AAB" > "$RUNNER_TEMP/aab-signature-verification.txt"
+          if ! grep -Fq 'jar verified.' "$RUNNER_TEMP/aab-signature-verification.txt"; then
+            echo "::error::Bundle AAB não verificado por jarsigner."
+            exit 1
+          fi
+          keytool -printcert -jarfile "$AAB" > "$RUNNER_TEMP/cert-aab.txt"
+          ACTUAL="$(sed -n 's/^.*SHA256: //p' "$RUNNER_TEMP/cert-aab.txt" | head -1)"
+          NORM_ACTUAL="$(printf '%s' "$ACTUAL" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          NORM_EXPECTED="$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          if [ -z "$NORM_ACTUAL" ] || [ "$NORM_ACTUAL" != "$NORM_EXPECTED" ]; then
+            echo "::error::Assinatura do AAB não corresponde à chave de upload aprovada."
+            exit 1
+          fi
+          unzip -l "$AAB" | grep -Fq 'base/manifest/AndroidManifest.xml'
+          sha256sum "$AAB"
+          echo "AAB validado, assinado e pronto para envio manual ao teste interno do Google Play."
+      - name: Publicar artefato AAB para Google Play
+        uses: actions/upload-artifact@v4
+        with:
+          name: aventura-na-galaxia-google-play-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 90
+      - name: Eliminar chaves e material temporário
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/aventura-play-upload.p12" "$RUNNER_TEMP/cert-upload.txt" "$RUNNER_TEMP/cert-aab.txt" "$RUNNER_TEMP/aab-signature-verification.txt"
