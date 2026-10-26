@@ -1,0 +1,3 @@
+versionCode=15
+versionName=0.6.9
+reason=Primeiro Android App Bundle para teste interno da Google Play, usando assinatura permanente existente e validacao do certificado.
