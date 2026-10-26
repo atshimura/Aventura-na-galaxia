@@ -160,5 +160,5 @@ test('áudio inclui efeito de laser e versão Android foi atualizada',()=>{
 
  assert.match(file('music-v2.mjs'),/kind==='laser'/);
  const build=readFileSync(new URL('../android/app/build.gradle',import.meta.url),'utf8');
- assert.match(build,/versionCode 14/);assert.match(build,/versionName '0.6.8'/);
+ assert.match(build,/versionCode 15/);assert.match(build,/versionName '0.6.9'/);
 });
